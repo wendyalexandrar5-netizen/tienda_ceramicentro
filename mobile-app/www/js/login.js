@@ -1,50 +1,43 @@
-const form = document.getElementById("loginForm");
+/** Inicio de sesión de clientes en la app. */
+(function () {
+    "use strict";
+    const form = document.getElementById("loginForm");
+    const btn = document.getElementById("btnLogin");
+    const msg = document.getElementById("mensaje");
 
-form.addEventListener("submit", async (e)=>{
-
-    e.preventDefault();
-
-    const correo = document.getElementById("correo").value;
-    const password = document.getElementById("password").value;
-
-    try{
-
-        const respuesta = await Capacitor.Plugins.CapacitorHttp.post({
-
-            url: "http://172.20.10.4/tiendaonline_mongodb/api/api_login.php",
-
-            headers: {
-                "Content-Type":"application/json"
-            },
-
-            data: {
-                correo,
-                password
-            }
-        });
-
-        const data = typeof respuesta.data === "string"
-            ? JSON.parse(respuesta.data)
-            : respuesta.data;
-
-        if(data.success){
-
-            localStorage.setItem(
-                "usuario",
-                JSON.stringify(data.usuario)
-            );
-
-            window.location.href = "../index.html";
-
-        }else{
-
-            document.getElementById("mensaje")
-            .innerText = data.message;
-        }
-
-    }catch(error){
-
-        mostrarToast("Error: " + error.message);
-console.log("ERROR LOGIN:", error);
+    const aviso = sessionStorage.getItem("aviso_login");
+    if (aviso) {
+        sessionStorage.removeItem("aviso_login");
+        msg.textContent = aviso;
+        msg.hidden = false;
     }
-});
+    if (Api.sesion() && Api.token()) location.replace("../home.html");
+
+    form.addEventListener("submit", async ev => {
+        ev.preventDefault();
+        if (btn.disabled) return;
+        msg.hidden = true;
+        const correo = document.getElementById("correo").value.trim().toLowerCase();
+        const password = document.getElementById("password").value;
+        if (!correo || !password) return mostrar("Escribe tu correo y tu contraseña.");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return mostrar("Escribe un correo válido, por ejemplo nombre@correo.com.");
+
+        UI.cargando(btn, true, "Ingresando…");
+        try {
+            const data = await Api.post("api_login.php", { correo, password });
+            Api.guardarSesion(data.usuario, data.token);
+            const volver = sessionStorage.getItem("volver_a");
+            sessionStorage.removeItem("volver_a");
+            location.replace(volver || "../home.html");
+        } catch (error) {
+            mostrar(error.message);
+        } finally {
+            UI.cargando(btn, false);
+        }
+    });
+
+    function mostrar(t) {
+        msg.textContent = t;
+        msg.hidden = false;
+    }
+})();

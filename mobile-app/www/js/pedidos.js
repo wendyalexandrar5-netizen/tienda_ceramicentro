@@ -1,184 +1,72 @@
-const listaPedidos = document.getElementById("listaPedidos");
+/** Historial de pedidos del cliente. */
+(function () {
+    "use strict";
+    const lista = document.getElementById("listaPedidos");
+    let pedidos = [];
 
-const BASE_URL = "http://172.20.10.4/tiendaonline_mongodb";
-
-async function imagenABase64(url){
-    if(!url){
-        return "https://via.placeholder.com/90x90?text=Sin+imagen";
+    function claseEstado(e) {
+        if (e === "Pagado" || e === "Entregado") return "estado-ok";
+        if (e === "En preparación" || e === "Enviado") return "estado-proceso";
+        if (e === "Pendiente de pago") return "estado-pendiente";
+        if (e === "Cancelado" || e === "Pago rechazado") return "estado-error";
+        return "estado-neutro";
     }
 
-    const res = await Capacitor.Plugins.CapacitorHttp.get({
-        url: url,
-        responseType: "blob"
+    async function cargar() {
+        if (!Api.requerirSesion()) return;
+        lista.innerHTML = '<div class="loading" role="status" aria-label="Cargando pedidos"></div>';
+        try {
+            const data = await Api.post("api_pedidos.php", {});
+            pedidos = data.pedidos || [];
+            if (!pedidos.length) {
+                UI.estado(lista, { icono: "📦", titulo: "Aún no tienes pedidos", texto: "Cuando compres, aquí verás el estado de cada pedido.", boton: "Ir a comprar", accion: () => location.href = "../home.html" });
+                return;
+            }
+            lista.innerHTML = pedidos.map(p =>
+                '<article class="pedido-card"><div class="pedido-cabecera"><div><h2>Pedido ' + UI.esc(p.numero || p.id) + "</h2>" +
+                '<p class="nota">' + UI.esc(p.fecha) + "</p></div>" +
+                '<span class="estado-badge ' + claseEstado(p.estado) + '">' + UI.esc(p.estado) + "</span></div>" +
+                (p.explicacion ? '<p class="nota">' + UI.esc(p.explicacion) + "</p>" : "") +
+                '<details><summary>' + p.productos.length + " producto(s) · " + UI.precio(p.total) + "</summary>" +
+                '<div class="pedido-lista">' + p.productos.map(x =>
+                    '<div class="pedido-producto">' + UI.img(x.imagen, x.nombre, "") +
+                    "<div><h3>" + UI.esc(x.nombre) + "</h3><p>Cantidad: " + x.cantidad + "</p><p>Precio: " + UI.precio(x.precio) + "</p>" +
+                    "<strong>Subtotal: " + UI.precio(x.subtotal) + "</strong></div></div>").join("") + "</div></details>" +
+                '<p class="fila-total"><span>Total</span><strong>' + UI.precio(p.total) + "</strong></p>" +
+                '<div class="pedido-actions"><button type="button" class="btn-secundario-app" data-repetir="' + UI.esc(p.id) + '">🔁 Repetir</button>' +
+                '<button type="button" class="btn-pdf" data-pdf="' + UI.esc(p.id) + '">📄 Comprobante</button></div></article>'
+            ).join("");
+        } catch (error) {
+            UI.mostrarError(lista, error, cargar);
+        }
+    }
+
+    lista.addEventListener("click", ev => {
+        const pdf = ev.target.closest("[data-pdf]");
+        if (pdf) {
+            const p = pedidos.find(x => x.id === pdf.dataset.pdf);
+            if (p && p.comprobante_url) window.open(p.comprobante_url, "_blank");
+            else mostrarToast("No se pudo generar el enlace del comprobante. Recarga la pantalla.", "error");
+        }
+        const rep = ev.target.closest("[data-repetir]");
+        if (rep) {
+            const p = pedidos.find(x => x.id === rep.dataset.repetir);
+            const productos = JSON.parse(sessionStorage.getItem("productos_cache") || "[]");
+            let agregados = 0;
+            const avisos = [];
+            p.productos.forEach(x => {
+                const actual = productos.find(y => y.id === x.producto_id) ||
+                    { id: x.producto_id, nombre: x.nombre, precio: x.precio, stock: x.cantidad, imagen: x.imagen, descripcion: "" };
+                const r = UI.agregarAlCarrito(actual, x.cantidad);
+                if (r.ok) agregados++; else avisos.push(x.nombre + ": " + r.mensaje);
+            });
+            if (avisos.length) mostrarToast(avisos[0], "error");
+            if (agregados) {
+                mostrarToast("Se agregaron " + agregados + " producto(s) al carrito", "ok");
+                setTimeout(() => location.href = "carrito.html", 900);
+            }
+        }
     });
 
-    return `data:image/jpeg;base64,${res.data}`;
-}
-
-async function cargarPedidos(){
-
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-
-    if(!usuario){
-        listaPedidos.innerHTML = "<p>Debes iniciar sesión para ver tus pedidos.</p>";
-        return;
-    }
-
-    listaPedidos.innerHTML = `
-        <div class="loading"></div>
-    `;
-
-    try{
-
-        const respuesta = await Capacitor.Plugins.CapacitorHttp.post({
-            url: `${BASE_URL}/api/api_pedidos.php`,
-            headers:{
-                "Content-Type":"application/json"
-            },
-            data:{
-                usuario_id: usuario.id
-            }
-        });
-
-        const data = typeof respuesta.data === "string"
-            ? JSON.parse(respuesta.data)
-            : respuesta.data;
-
-        if(!data.success){
-            listaPedidos.innerHTML = `<p>${data.message}</p>`;
-            return;
-        }
-
-        if(data.pedidos.length === 0){
-            listaPedidos.innerHTML = "<p>No tienes pedidos todavía.</p>";
-            return;
-        }
-
-        window.pedidosGlobales = data.pedidos;
-
-        listaPedidos.innerHTML = "";
-
-        for(const pedido of data.pedidos){
-
-            let productosHTML = "";
-
-            for(const producto of pedido.productos){
-
-                let img = producto.imagen;
-
-                try{
-                    img = await imagenABase64(producto.imagen);
-                    producto.imagenBase64 = img;
-                }catch(e){
-                    img = "https://via.placeholder.com/90x90?text=Sin+imagen";
-                    producto.imagenBase64 = img;
-                }
-
-                productosHTML += `
-                    <div class="pedido-producto">
-                        <img src="${img}" alt="${producto.nombre}">
-
-                        <div>
-                            <h4>${producto.nombre}</h4>
-                            <p>Cantidad: ${producto.cantidad}</p>
-                            <p>Precio: $${Number(producto.precio).toFixed(2)}</p>
-                            <strong>Subtotal: $${Number(producto.subtotal).toFixed(2)}</strong>
-                        </div>
-                    </div>
-                `;
-            }
-
-            listaPedidos.innerHTML += `
-                <div class="pedido-card">
-
-                    <h2>📄 Detalle del Pedido</h2>
-
-                    <div class="pedido-info">
-                        <p><strong>ID Pedido:</strong> ${pedido.id}</p>
-                        <p><strong>Fecha:</strong> ${pedido.fecha}</p>
-                        <p><strong>Total:</strong> $${Number(pedido.total).toFixed(2)}</p>
-                        <p>
-                            <strong>Estado:</strong>
-                            <span class="estado-pagado">${pedido.estado}</span>
-                        </p>
-                    </div>
-
-                    <h3>🛒 Productos del Pedido</h3>
-
-                    <div class="pedido-lista">
-                        ${productosHTML}
-                    </div>
-
-                    <div class="pedido-actions">
-                        <button onclick="repetirPedido('${pedido.id}')">
-                            🔁 Repetir pedido
-                        </button>
-
-                        <button class="btn-pdf" onclick="descargarPedido('${pedido.id}')">
-                            📄 Descargar PDF
-                        </button>
-                    </div>
-
-                </div>
-            `;
-        }
-
-    }catch(error){
-        listaPedidos.innerHTML = `
-            <p>Error cargando pedidos</p>
-            <small>${error.message}</small>
-        `;
-    }
-}
-
-function descargarPedido(idPedido){
-
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-
-    if(!usuario){
-        mostrarToast("Debes iniciar sesión");
-        return;
-    }
-
-    window.open(
-        `${BASE_URL}/api/descargar_pedido_app.php?id=${idPedido}&usuario_id=${usuario.id}`,
-        "_blank"
-    );
-}
-
-function repetirPedido(idPedido){
-
-    const pedido = window.pedidosGlobales.find(
-        p => p.id === idPedido
-    );
-
-    if(!pedido){
-        mostrarToast("Pedido no encontrado");
-        return;
-    }
-
-    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
-    pedido.productos.forEach(producto => {
-
-        carrito.push({
-            id: producto.producto_id,
-            nombre: producto.nombre,
-            precio: producto.precio,
-            cantidad: producto.cantidad,
-            imagenFinal: producto.imagenBase64 || producto.imagen || "",
-            imagen: producto.imagen || "",
-            descripcion: "Producto repetido desde pedido"
-        });
-    });
-
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-
-    mostrarToast("Pedido agregado al carrito");
-
-    setTimeout(()=>{
-        window.location.href = "carrito.html";
-    }, 1000);
-}
-
-cargarPedidos();
+    cargar();
+})();

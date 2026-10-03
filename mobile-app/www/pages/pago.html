@@ -1,48 +1,51 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Pago PSE</title>
-
-    <link rel="stylesheet"
-          href="../css/styles.css">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c62828">
+    <title>Pago PSE (simulador) | CERAMISHOP</title>
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
-
 <body>
-
-<div class="login-container">
-
-    <div class="login-card">
-
-        <h1>
-            PSE
-        </h1>
-
-        <p>
-            Redirigiéndote a la plataforma de pagos...
-        </p>
-
-        <div class="spinner"></div>
-
-        <p id="estadoPago">
-
-            Conectando con PSE...
-
-        </p>
-
+<header class="topbar"><a href="carrito.html" class="topbar-volver" aria-label="Volver">‹</a><h1>Pago PSE (simulador)</h1></header>
+<main class="pago-container">
+    <p class="pse-aviso" role="note">🚧 <b>Simulador de PSE.</b> No se conecta con ningún banco, no pide claves ni datos bancarios y <b>no realiza cobros reales</b>.</p>
+    <section class="pse-cabecera"><span>Total a pagar</span><strong id="totalPago">$0</strong><small id="resumenPago"></small></section>
+    <form id="formPse" class="user-box form-pse" novalidate>
+        <fieldset>
+            <legend>Tipo de persona</legend>
+            <label class="check"><input type="radio" name="persona" value="natural" checked> Persona natural</label>
+            <label class="check"><input type="radio" name="persona" value="juridica"> Persona jurídica</label>
+        </fieldset>
+        <label for="banco" class="campo-label">Banco (simulado)</label>
+        <select id="banco" required>
+            <option value="">Selecciona tu banco…</option>
+            <option>Banco Simulado Andino</option>
+            <option>Banco Simulado del Café</option>
+            <option>Banco Simulado Caribe</option>
+            <option>Cooperativa Simulada</option>
+        </select>
+        <fieldset>
+            <legend>Resultado que quieres simular</legend>
+            <label class="check"><input type="radio" name="resultado" value="aprobado" checked> Pago aprobado</label>
+            <label class="check"><input type="radio" name="resultado" value="rechazado"> Pago rechazado</label>
+        </fieldset>
+        <button type="submit" id="btnPagar" class="btn-principal btn-pse">Pagar</button>
+        <a href="carrito.html" class="btn-texto">Volver al carrito</a>
+    </form>
+    <div id="procesando" class="estado-vista" role="status" aria-live="assertive" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <h2 id="textoProcesando">Procesando el pago simulado…</h2>
+        <p>No cierres la app.</p>
     </div>
+    <div id="resultadoPago"></div>
+</main>
 
-</div>
-
-<script src="js/toast.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/util.js"></script>
 <script src="../js/pago.js"></script>
-
 </body>
 </html>

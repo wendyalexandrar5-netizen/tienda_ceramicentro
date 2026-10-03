@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tráfico HTTP sin cifrar permitido para trabajar con el servidor Apache local
+  (ej. http://172.20.10.4/tiendaonline_mongodb). En producción, use HTTPS en
+  www/js/config.js y cambie cleartextTrafficPermitted a "false".
+-->
 <network-security-config>
     <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

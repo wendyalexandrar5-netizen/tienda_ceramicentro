@@ -1,327 +1,125 @@
-const usuario = JSON.parse(localStorage.getItem("usuario"));
+/** Pantalla de inicio: catálogo, búsqueda y categorías. */
+(function () {
+    "use strict";
+    const usuario = Api.sesion();
+    const saludo = document.getElementById("saludoUsuario");
+    const btnIngresar = document.getElementById("btnIngresar");
+    const grid = document.getElementById("productosGrid");
+    const buscador = document.getElementById("buscadorProductos");
+    const contCategorias = document.getElementById("categoriasContainer");
+    const resumen = document.getElementById("resumenResultados");
 
-const saludo = document.getElementById("saludoUsuario");
-const btnLogout = document.getElementById("btnLogout");
+    let productos = [];
+    let categoriaActual = "Todas";
 
-if(usuario){
-    saludo.innerText = "Hola, " + usuario.nombre;
-    btnLogout.style.display = "block";
-}else{
-    saludo.innerText = "Hola, invitado";
-}
+    if (usuario && Api.token()) {
+        saludo.textContent = "Hola, " + (usuario.nombre || "").split(" ")[0];
+        btnIngresar.hidden = true;
+    }
 
-btnLogout.addEventListener("click", ()=>{
-    localStorage.removeItem("usuario");
-    window.location.href = "pages/login.html";
-});
+    async function cargar() {
+        UI.esqueletos(grid, 4);
+        resumen.textContent = "";
+        try {
+            const [lista, cats] = await Promise.all([
+                Api.get("api_productos.php"),
+                Api.get("api_categorias.php").catch(() => ({ categorias: [] }))
+            ]);
+            productos = Array.isArray(lista) ? lista : [];
+            sessionStorage.setItem("productos_cache", JSON.stringify(productos));
+            renderCategorias(cats.categorias || []);
+            aplicarFiltros();
+        } catch (error) {
+            console.error("Error cargando catálogo:", error);
+            // Si hay datos guardados de una carga anterior, se muestran mientras tanto
+            const cache = JSON.parse(sessionStorage.getItem("productos_cache") || "null");
+            if (cache && cache.length) {
+                productos = cache;
+                aplicarFiltros();
+                mostrarToast("Mostrando datos guardados: " + error.message, "error");
+            } else {
+                UI.mostrarError(grid, error, cargar);
+            }
+        }
+    }
 
-const grid = document.getElementById("productosGrid");
-const buscador = document.getElementById("buscadorProductos");
-const categoriasContainer = document.getElementById("categoriasContainer");
+    function renderCategorias(categorias) {
+        const nombres = ["Todas"].concat(categorias.map(c => c.nombre));
+        contCategorias.innerHTML = nombres.map(n =>
+            '<button type="button" class="categoria-btn' + (n === categoriaActual ? " active" : "") + '" aria-pressed="' + (n === categoriaActual) + '" data-categoria="' + UI.esc(n) + '">' + UI.esc(n) + "</button>"
+        ).join("");
+    }
 
-let categoriaActual = "Todas";
-
-async function imagenABase64(url){
-
-    const res = await Capacitor.Plugins.CapacitorHttp.get({
-        url: url,
-        responseType: "blob"
+    contCategorias.addEventListener("click", ev => {
+        const b = ev.target.closest("[data-categoria]");
+        if (!b) return;
+        categoriaActual = b.dataset.categoria;
+        contCategorias.querySelectorAll(".categoria-btn").forEach(x => {
+            const activo = x.dataset.categoria === categoriaActual;
+            x.classList.toggle("active", activo);
+            x.setAttribute("aria-pressed", activo);
+        });
+        aplicarFiltros();
     });
 
-    return `data:image/jpeg;base64,${res.data}`;
-}
-
-async function cargarProductos(){
-
-    grid.innerHTML = `
-    <div class="loading"></div>
-    `;
-
-    try{
-
-        const respuesta = await Capacitor.Plugins.CapacitorHttp.get({
-            url: "http://172.20.10.4/tiendaonline_mongodb/api/api_productos.php",
-            headers: {
-                "Accept": "application/json"
-            }
-        });
-
-        const productos = typeof respuesta.data === "string"
-            ? JSON.parse(respuesta.data)
-            : respuesta.data;
-
-        window.productosGlobales = [];
-        window.todosProductos = [];
-
-        for(const producto of productos){
-
-            let imagenFinal = producto.imagen;
-
-            try{
-                imagenFinal = await imagenABase64(producto.imagen);
-            }catch(e){
-                imagenFinal = "https://via.placeholder.com/300x200?text=Sin+imagen";
-            }
-
-            const productoCompleto = {
-                ...producto,
-                imagenFinal: imagenFinal
-            };
-
-            window.productosGlobales.push(productoCompleto);
-            window.todosProductos.push(productoCompleto);
-        }
-
-        renderCategorias();
-        aplicarFiltros();
-
-    }catch(error){
-
-        console.error("ERROR REAL:", error);
-
-        grid.innerHTML = `
-            <p>Error cargando productos</p>
-            <small>${error.message}</small>
-        `;
+    function aplicarFiltros() {
+        const texto = buscador.value.trim().toLowerCase();
+        const filtrados = productos.filter(p =>
+            (categoriaActual === "Todas" || p.categoria === categoriaActual) &&
+            (!texto || (p.nombre || "").toLowerCase().includes(texto) || (p.descripcion || "").toLowerCase().includes(texto))
+        );
+        render(filtrados);
+        resumen.textContent = filtrados.length + " producto" + (filtrados.length === 1 ? "" : "s") + (texto ? " para «" + buscador.value.trim() + "»" : "");
     }
-}
 
-async function renderCategorias(){
-
-    try{
-
-        const respuesta = await Capacitor.Plugins.CapacitorHttp.get({
-            url: "http://172.20.10.4/tiendaonline_mongodb/api/api_categorias.php"
-        });
-
-        const data = typeof respuesta.data === "string"
-            ? JSON.parse(respuesta.data)
-            : respuesta.data;
-
-        if(!data.success){
+    function render(lista) {
+        if (!lista.length) {
+            UI.estado(grid, { icono: "🔍", titulo: "No encontramos productos", texto: "Prueba con otra palabra o categoría.", boton: "Ver todos", accion: () => { buscador.value = ""; categoriaActual = "Todas"; contCategorias.querySelector("[data-categoria]")?.click(); } });
             return;
         }
-
-        const categorias = [
-            "Todas",
-            ...data.categorias.map(c => c.nombre)
-        ];
-
-        categoriasContainer.innerHTML = "";
-
-        categorias.forEach(cat => {
-
-            categoriasContainer.innerHTML += `
-                <button
-                    class="categoria-btn ${cat === categoriaActual ? "active" : ""}"
-                    onclick="filtrarCategoria('${cat}')"
-                >
-                    ${cat}
-                </button>
-            `;
-        });
-
-    }catch(error){
-        console.error("Error cargando categorías", error);
-    }
-}
-
-function renderProductos(productos){
-
-    grid.innerHTML = "";
-
-    if(productos.length === 0){
-        grid.innerHTML = "<p>No se encontraron productos.</p>";
-        return;
+        grid.innerHTML = lista.map(p => {
+            const agotado = p.stock <= 0;
+            return '<article class="producto-card">' +
+                '<button type="button" class="tarjeta-enlace" data-detalle="' + UI.esc(p.id) + '" aria-label="Ver detalle de ' + UI.esc(p.nombre) + '">' +
+                UI.img(p.imagen, p.nombre, "producto-img") + "</button>" +
+                '<p class="categoria-texto">' + UI.esc(p.categoria || "Sin categoría") + "</p>" +
+                "<h3>" + UI.esc(p.nombre) + "</h3>" +
+                '<p class="descripcion-corta">' + UI.esc(p.descripcion) + "</p>" +
+                (agotado ? '<p class="stock-bajo">Agotado</p>' : p.stock <= 5 ? '<p class="stock-bajo">Últimas ' + p.stock + " unidades</p>" : "") +
+                '<strong class="precio">' + UI.precio(p.precio) + "</strong>" +
+                '<button type="button" class="btn-secundario-app" data-detalle="' + UI.esc(p.id) + '">Ver detalle</button>' +
+                (agotado ? "" :
+                    '<div class="cantidad-box"><label class="sr-only" for="cant-' + UI.esc(p.id) + '">Cantidad</label>' +
+                    '<input type="number" id="cant-' + UI.esc(p.id) + '" min="1" max="' + p.stock + '" value="1" inputmode="numeric">' +
+                    '<button type="button" class="btn-principal" data-agregar="' + UI.esc(p.id) + '">Agregar</button></div>') +
+                "</article>";
+        }).join("");
     }
 
-    productos.forEach(producto => {
-
-        grid.innerHTML += `
-            <div class="card producto-card">
-
-                <img
-                    src="${producto.imagenFinal}"
-                    alt="${producto.nombre}"
-                    class="producto-img"
-                >
-
-                <h3>${producto.nombre}</h3>
-
-                <p>${producto.descripcion}</p>
-
-                <p class="categoria-texto">
-                    ${producto.categoria || "Sin categoría"}
-                </p>
-
-                ${
-                    producto.stock <= 5
-                    ? `<p class="stock-bajo">
-                        Últimas ${producto.stock} unidades
-                        </p>`
-                : ""
-                }
-
-                <strong>
-                    $${producto.precio}
-                </strong>
-
-                <button onclick="verDetalle('${producto.id}')">
-                Ver detalle
-                </button>
-
-                <div class="cantidad-box">
-
-                    <input
-                        type="number"
-                        id="cantidad-${producto.id}"
-                        min="1"
-                        max="${producto.stock}"
-                        value="1"
-                    >
-
-                    <button onclick="agregarCarrito('${producto.id}')">
-                        Agregar
-                    </button>
-
-                </div>
-
-            </div>
-        `;
-    });
-}
-
-function filtrarCategoria(categoria){
-
-    categoriaActual = categoria;
-
-    renderCategorias();
-
-    aplicarFiltros();
-}
-
-function aplicarFiltros(){
-
-    const texto = buscador.value.toLowerCase();
-
-    const filtrados = window.todosProductos.filter(producto => {
-
-        const coincideTexto =
-            producto.nombre.toLowerCase().includes(texto) ||
-            producto.descripcion.toLowerCase().includes(texto);
-
-        const coincideCategoria =
-            categoriaActual === "Todas" ||
-            producto.categoria === categoriaActual;
-
-        return coincideTexto && coincideCategoria;
+    grid.addEventListener("click", ev => {
+        const det = ev.target.closest("[data-detalle]");
+        if (det) {
+            const p = productos.find(x => x.id === det.dataset.detalle);
+            if (p) {
+                localStorage.setItem("productoDetalle", JSON.stringify(p));
+                location.href = "pages/detalle.html";
+            }
+            return;
+        }
+        const add = ev.target.closest("[data-agregar]");
+        if (add) {
+            const p = productos.find(x => x.id === add.dataset.agregar);
+            const cant = document.getElementById("cant-" + p.id).value;
+            const r = UI.agregarAlCarrito(p, cant);
+            mostrarToast(r.mensaje, r.ok ? "ok" : "error");
+        }
     });
 
-    renderProductos(filtrados);
-}
+    let espera;
+    buscador.addEventListener("input", () => {
+        clearTimeout(espera);
+        espera = setTimeout(aplicarFiltros, 200);
+    });
 
-buscador.addEventListener("input", ()=>{
-    aplicarFiltros();
-});
-
-cargarProductos();
-
-function agregarCarrito(idProducto){
-
-    const producto = window.productosGlobales.find(
-        p => p.id === idProducto
-    );
-
-    if(!producto){
-        mostrarToast("Producto no encontrado");
-        return;
-    }
-
-    const cantidadInput = document.getElementById("cantidad-" + idProducto);
-    const cantidad = parseInt(cantidadInput.value) || 1;
-
-    if(cantidad <= 0){
-        mostrarToast("Cantidad inválida");
-        return;
-    }
-
-    if(cantidad > producto.stock){
-        mostrarToast("Solo hay " + producto.stock + " unidades disponibles");
-        return;
-    }
-
-    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
-    const existente = carrito.find(
-        p => p.id === producto.id
-    );
-
-    const cantidadEnCarrito = existente
-        ? Number(existente.cantidad)
-        : 0;
-
-    if(cantidad + cantidadEnCarrito > producto.stock){
-        mostrarToast("No puedes agregar más del stock disponible");
-        return;
-    }
-
-    if(existente){
-        existente.cantidad = cantidadEnCarrito + cantidad;
-    }else{
-        carrito.push({
-            ...producto,
-            cantidad: cantidad
-        });
-    }
-
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-
-    mostrarToast(producto.nombre + " agregado x" + cantidad);
-}
-
-function toggleFavorito(idProducto){
-
-    const producto = window.productosGlobales.find(
-        p => p.id === idProducto
-    );
-
-    let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
-
-    const existe = favoritos.find(p => p.id === idProducto);
-
-    if(existe){
-        favoritos = favoritos.filter(p => p.id !== idProducto);
-        mostrarToast("Producto eliminado de favoritos");
-    }else{
-        favoritos.push(producto);
-        mostrarToast("Producto agregado a favoritos");
-    }
-
-    localStorage.setItem("favoritos", JSON.stringify(favoritos));
-}
-
-function esFavorito(idProducto){
-
-    const favoritos =
-    JSON.parse(
-        localStorage.getItem("favoritos")
-    ) || [];
-
-    return favoritos.some(
-        p => p.id === idProducto
-    );
-}
-
-function verDetalle(idProducto){
-
-    const producto = window.productosGlobales.find(
-        p => p.id === idProducto
-    );
-
-    localStorage.setItem(
-        "productoDetalle",
-        JSON.stringify(producto)
-    );
-
-    window.location.href = "pages/detalle.html";
-}
+    cargar();
+})();

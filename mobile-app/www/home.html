@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CERAMISHOP APP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c62828">
+    <title>CERAMISHOP</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -13,40 +14,38 @@
         <h1>CERAMICENTRO</h1>
         <p id="saludoUsuario">Hola, invitado</p>
     </div>
-
-    <button id="btnLogout" style="display:none;">
-        Salir
-    </button>
+    <a id="btnIngresar" class="btn-header" href="pages/login.html">Ingresar</a>
 </header>
 
-<section class="home-hero">
-    <h2>Encuentra productos para tus espacios</h2>
-    <p>Cerámica, pisos, enchapes y más.</p>
-</section>
+<main>
+    <section class="home-hero">
+        <h2>Encuentra productos para tus espacios</h2>
+        <p>Cerámica, pisos, enchapes, techos PVC y más.</p>
+    </section>
 
-<div class="buscador-container">
-    <input
-        type="text"
-        id="buscadorProductos"
-        placeholder="Buscar productos..."
-    >
-</div>
+    <div class="buscador-container" role="search">
+        <label for="buscadorProductos" class="sr-only">Buscar productos</label>
+        <input type="search" id="buscadorProductos" placeholder="🔎 Buscar productos..." autocomplete="off" enterkeyhint="search">
+    </div>
 
-<div class="categorias-container" id="categoriasContainer"></div>
+    <div class="categorias-container" id="categoriasContainer" role="group" aria-label="Filtrar por categoría"></div>
 
-<section id="productosGrid" class="menu-grid"></section>
+    <p id="resumenResultados" class="resumen-resultados" role="status" aria-live="polite"></p>
+    <section id="productosGrid" class="menu-grid" aria-label="Productos"></section>
+</main>
 
-<nav class="bottom-nav">
-    <a href="index.html">🏠</a>
-    <a href="#productosGrid">🛍️</a>
-    <a href="pages/favoritos.html">❤️</a>
-    <a href="pages/carrito.html">🛒</a>
-    <a href="pages/pedidos.html">📦</a>
-    <a href="pages/perfil.html">👤</a>
+<nav class="bottom-nav" aria-label="Navegación principal">
+    <a href="home.html"><span aria-hidden="true">🏠</span><small>Inicio</small></a>
+    <a href="pages/favoritos.html"><span aria-hidden="true">❤️</span><small>Favoritos</small></a>
+    <a href="pages/carrito.html" class="nav-carrito"><span aria-hidden="true">🛒</span><small>Carrito</small><b class="nav-badge" data-badge-carrito hidden>0</b></a>
+    <a href="pages/pedidos.html"><span aria-hidden="true">📦</span><small>Pedidos</small></a>
+    <a href="pages/perfil.html"><span aria-hidden="true">👤</span><small>Perfil</small></a>
 </nav>
 
+<script src="js/config.js"></script>
 <script src="js/toast.js"></script>
+<script src="js/api.js"></script>
+<script src="js/util.js"></script>
 <script src="js/app.js"></script>
-
 </body>
 </html>

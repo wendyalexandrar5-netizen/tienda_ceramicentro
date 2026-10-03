@@ -2,40 +2,34 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c62828">
+    <title>Carrito | CERAMISHOP</title>
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-
-<header class="topbar">
-    <h1>Mi carrito</h1>
-</header>
-
-<section id="listaCarrito" class="menu-grid"></section>
-
-<div class="user-box">
-    <h3>Total: $<span id="totalCarrito">0</span></h3>
-    <button id="btnComprar">Comprar</button>
-    <br><br>
-    <button onclick="vaciarCarrito()">Vaciar carrito</button>
-    <br><br>
-    <a href="../index.html" class="btn-volver-app">
-    Volver
-</a>
-</div>
-
-<nav class="bottom-nav">
-    <a href="../index.html">🏠</a>
-    <a href="../index.html#productosGrid">🛍️</a>
-    <a href="favoritos.html">❤️</a>
-    <a href="carrito.html">🛒</a>
-    <a href="pedidos.html">📦</a>
-    <a href="perfil.html">👤</a>
+<header class="topbar"><a href="../home.html" class="topbar-volver" aria-label="Volver">‹</a><h1>Mi carrito</h1></header>
+<main>
+    <section id="listaCarrito" class="lista-carrito" aria-label="Productos del carrito"></section>
+    <div class="user-box resumen-carrito" id="resumenCarrito" hidden>
+        <p class="fila-total"><span>Total</span><strong id="totalCarrito">$0</strong></p>
+        <p class="nota">IVA incluido. El pago es un <b>simulador de PSE</b>: no se cobra dinero real.</p>
+        <button type="button" id="btnComprar" class="btn-principal">Continuar al pago</button>
+        <button type="button" id="btnVaciar" class="btn-texto">Vaciar carrito</button>
+    </div>
+</main>
+<nav class="bottom-nav" aria-label="Navegación principal">
+    <a href="../home.html"><span aria-hidden="true">🏠</span><small>Inicio</small></a>
+    <a href="favoritos.html"><span aria-hidden="true">❤️</span><small>Favoritos</small></a>
+    <a href="carrito.html" class="nav-carrito"><span aria-hidden="true">🛒</span><small>Carrito</small><b class="nav-badge" data-badge-carrito hidden>0</b></a>
+    <a href="pedidos.html"><span aria-hidden="true">📦</span><small>Pedidos</small></a>
+    <a href="perfil.html"><span aria-hidden="true">👤</span><small>Perfil</small></a>
 </nav>
 
-<script src="js/toast.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/util.js"></script>
 <script src="../js/carrito.js"></script>
-
 </body>
 </html>
