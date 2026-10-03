@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+    <h1>Mi carrito</h1>
+</header>
+
+<section id="listaCarrito" class="menu-grid"></section>
+
+<div class="user-box">
+    <h3>Total: $<span id="totalCarrito">0</span></h3>
+    <button id="btnComprar">Comprar</button>
+    <br><br>
+    <button onclick="vaciarCarrito()">Vaciar carrito</button>
+    <br><br>
+    <a href="../index.html" class="btn-volver-app">
+    Volver
+</a>
+</div>
+
+<nav class="bottom-nav">
+    <a href="../index.html">🏠</a>
+    <a href="../index.html#productosGrid">🛍️</a>
+    <a href="favoritos.html">❤️</a>
+    <a href="carrito.html">🛒</a>
+    <a href="pedidos.html">📦</a>
+    <a href="perfil.html">👤</a>
+</nav>
+
+<script src="js/toast.js"></script>
+<script src="../js/carrito.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Exitoso</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-card success-card">
+
+        <div class="success-icon">✅</div>
+
+        <h1>Pago exitoso</h1>
+
+        <p>Tu pedido fue procesado correctamente.</p>
+
+        <div class="success-info">
+            <h3>Total pagado: $<span id="totalPedido">0</span></h3>
+            <p>Pedido #<span id="pedidoId">---</span></p>
+        </div>
+
+        <button onclick="window.location.href='pedidos.html'">
+            Ver mis pedidos
+        </button>
+
+        <button class="btn-pdf" onclick="descargarComprobante()">
+            📄 Descargar comprobante
+        </button>
+
+        <button class="btn-secundario" onclick="window.location.href='../index.html'">
+            Volver al inicio
+        </button>
+
+    </div>
+</div>
+
+<script>
+const BASE_URL = "http://172.20.10.4/tiendaonline_mongodb";
+
+const pedido = JSON.parse(localStorage.getItem("ultimoPedido"));
+const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+if(pedido){
+    document.getElementById("totalPedido").innerText =
+        Number(pedido.total).toFixed(2);
+
+    document.getElementById("pedidoId").innerText =
+        pedido.pedido_id;
+}
+
+function descargarComprobante(){
+    if(!pedido || !usuario){
+        alert("No se encontró el pedido.");
+        return;
+    }
+
+    window.open(
+        `${BASE_URL}/api/descargar_pedido_app.php?id=${pedido.pedido_id}&usuario_id=${usuario.id}`,
+        "_blank"
+    );
+}
+</script>
+
+</body>
+</html>

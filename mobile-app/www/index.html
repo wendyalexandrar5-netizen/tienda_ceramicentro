@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>CERAMISHOP</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    width:100%;
+    height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+
+    overflow:hidden;
+
+    font-family:Arial,sans-serif;
+
+    background:
+    linear-gradient(
+        135deg,
+        #7f0000,
+        #c62828,
+        #e53935
+    );
+}
+
+.logo{
+
+    width:180px;
+
+    animation:
+    aparecer 1.2s ease,
+    flotar 3s infinite ease-in-out;
+
+    filter:
+    drop-shadow(
+        0 10px 18px rgba(0,0,0,.3)
+    );
+}
+
+.titulo{
+
+    margin-top:25px;
+
+    color:white;
+
+    font-size:34px;
+    font-weight:bold;
+
+    letter-spacing:2px;
+
+    animation:
+    fadeTexto 1.8s ease;
+}
+
+.subtitulo{
+
+    margin-top:8px;
+
+    color:rgba(255,255,255,.85);
+
+    font-size:15px;
+
+    animation:
+    fadeTexto 2.2s ease;
+}
+
+.loader{
+
+    width:45px;
+    height:45px;
+
+    margin-top:35px;
+
+    border-radius:50%;
+
+    border:
+    4px solid rgba(255,255,255,.25);
+
+    border-top:
+    4px solid white;
+
+    animation:
+    spin 1s linear infinite;
+}
+
+@keyframes aparecer{
+
+    from{
+
+        opacity:0;
+
+        transform:
+        scale(.7);
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+        scale(1);
+    }
+}
+
+@keyframes flotar{
+
+    0%{
+        transform:
+        translateY(0px);
+    }
+
+    50%{
+        transform:
+        translateY(-10px);
+    }
+
+    100%{
+        transform:
+        translateY(0px);
+    }
+}
+
+@keyframes fadeTexto{
+
+    from{
+
+        opacity:0;
+
+        transform:
+        translateY(25px);
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+        translateY(0px);
+    }
+}
+
+@keyframes spin{
+
+    from{
+        transform:
+        rotate(0deg);
+    }
+
+    to{
+        transform:
+        rotate(360deg);
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<img
+    src="img/logosinfondoblanco.png"
+    class="logo"
+    alt="CERAMISHOP"
+>
+
+<div class="titulo">
+    CERAMICENTRO
+</div>
+
+<div class="subtitulo">
+    Hogar • Diseño • Calidad
+</div>
+
+<div class="loader"></div>
+
+<script>
+
+setTimeout(()=>{
+
+    window.location.href =
+    "home.html";
+
+},2500);
+
+</script>
+
+</body>
+</html>

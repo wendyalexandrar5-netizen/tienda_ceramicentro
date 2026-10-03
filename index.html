@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+    <link rel="stylesheet" href="style0.css">
+    <style>
+    footer {
+        font-size: 0.9rem;
+        color: #888;
+    }
+    .logo {
+        width: 100px;
+        height: auto;
+    }
+    .menu {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .menu img.logo {
+        margin-right: auto;
+    }
+    nav.navbar ul {
+        list-style: none;
+        display: flex;
+        gap: 1rem;
+        padding: 0;
+    }
+    nav.navbar a {
+        text-decoration: none;
+    }
+    .coffe-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .coffe-1 {
+        background: #fff;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        height: 420px;
+    }
+    .coffe-1 img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;      
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    .coffe-1 h3 {
+        flex-shrink: 0;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    .coffe-1 p {
+        margin-top: auto;
+        font-size: 0.9rem;
+    }
+</style>
+
+</head>
+<body>
+    <header class="header">
+        <div class="menu container">
+            <img src="imagenes/logosinfondo.png" alt="Logo" class="logo">
+            <input type="checkbox" id="menu" />
+            <label for="menu">
+                <img src="img/menu.png" alt="Menu">
+            </label>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="nosotros.html">Nosotros</a></li>
+                    <li><a href="productos.html">Productos</a></li>
+                    <li><a href="contacto.php">Contactanos</a></li>
+                    <li><a href="login.php">Iniciar sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+        <hr>
+        <br>
+        <div class="header-content container">
+            <h1>Ceramicentro</h1>
+            <p>En Ceramicentro somos una empresa comprometida con la calidad, el diseño y la innovación en productos de cerámica, baldosas y techos PVC. Con años de experiencia en el sector, trabajamos para brindar soluciones prácticas y estéticas para tus espacios.
+            </p>
+            <a href="contacto.php" class="btn-1">Información</a>
+        </div>
+    </header>
+
+    <section class="coffe">
+        <img class="coffe-img" src="img/tornillos.png" alt="">
+        <div class="coffe-content container">
+            <h2>Productos destacados</h2>
+            <p class="txt-p">
+            En Ceramicentro contamos con gran variedad de productos, pero hay algunos los cuales se merecen un apartado especial...
+            </p>
+
+            <div class="coffe-group">
+                <div class="coffe-1">
+                    <img src="imagenes/castillo.jpg" alt="">
+                    <h3>Baldosa castillo</h3>
+                    <p>Ceramica moderna con estilo rustico, perfecto para construcciones con diseños antiguos o lugares donde quieras apreciar un poco de elegancia...</p>
+                </div>
+
+                <div class="coffe-1">
+                    <img src="imagenes/espacato.jpg" alt="">
+                    <h3>Enchape espacato</h3>
+                    <p>Ceramica moderna con estilo clasico, perfecto para construcciones con diseños simples pero elegantes... </p>
+                </div>
+
+                <div class="coffe-1">
+                    <img src="img/c3.jpg" alt="">
+                    <h3>Piso madera</h3>
+                    <p>Pisos tipo madera, perfecto para lugares elegantes o campestres ya que da la apariencia de ser madera real...</p>
+                </div>
+
+                <div class="coffe-1">
+                    <img src="img/c4.webp" alt="">
+                    <h3>Techo</h3>
+                    <p>Techo tipo PVC color gis-blanco, es perfecto si quieres interiores iluminados y con un diseño hermoso en olas...</p>
+                </div>
+    </section>
+
+    <hr>
+    <br>
+    <footer style="text-align: center;">
+        <strong>© 2025 CERAMISHOP</strong> - Todos los derechos reservados
+    </footer>
+    <br>
+</body>
+</html>

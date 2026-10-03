@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CERAMISHOP APP</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="home-header">
+    <div>
+        <h1>CERAMICENTRO</h1>
+        <p id="saludoUsuario">Hola, invitado</p>
+    </div>
+
+    <button id="btnLogout" style="display:none;">
+        Salir
+    </button>
+</header>
+
+<section class="home-hero">
+    <h2>Encuentra productos para tus espacios</h2>
+    <p>Cerámica, pisos, enchapes y más.</p>
+</section>
+
+<div class="buscador-container">
+    <input
+        type="text"
+        id="buscadorProductos"
+        placeholder="Buscar productos..."
+    >
+</div>
+
+<div class="categorias-container" id="categoriasContainer"></div>
+
+<section id="productosGrid" class="menu-grid"></section>
+
+<nav class="bottom-nav">
+    <a href="index.html">🏠</a>
+    <a href="#productosGrid">🛍️</a>
+    <a href="pages/favoritos.html">❤️</a>
+    <a href="pages/carrito.html">🛒</a>
+    <a href="pages/pedidos.html">📦</a>
+    <a href="pages/perfil.html">👤</a>
+</nav>
+
+<script src="js/toast.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
