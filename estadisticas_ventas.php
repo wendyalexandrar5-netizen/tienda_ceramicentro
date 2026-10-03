@@ -1,218 +1,99 @@
 <?php
-include("verificar_acceso.php");
-verificarSesion('administrador');
+/** Estadísticas de ventas por año (solo pedidos pagados / en proceso / entregados). */
+require_once __DIR__ . '/includes/admin.php';
+require_once __DIR__ . '/includes/estadisticas.php';
+requerir_sesion('administrador');
 
-require __DIR__ . '/vendor/autoload.php';
-include("conexion_mongo.php");
-
-use MongoDB\BSON\UTCDateTime;
-
-$db = mongo();
-$colPedidos       = $db->selectCollection('pedidos');
-$colDetalle       = $db->selectCollection('pedido_detalle');
-
-$pedidoIds = $colDetalle->distinct('pedido_id');
-$total_ventas = count($pedidoIds);
-
-$aggStats = $colDetalle->aggregate([
-    [
-        '$group' => [
-            '_id'              => null,
-            'total_productos'  => ['$sum' => '$cantidad'],
-            'total_ganancias'  => ['$sum' => '$subtotal']
-        ]
-    ]
-]);
-
-$statsDoc = $aggStats->toArray();
-if (!empty($statsDoc)) {
-    $total_productos = (int)($statsDoc[0]['total_productos'] ?? 0);
-    $total_ganancias = (float)($statsDoc[0]['total_ganancias'] ?? 0);
-} else {
-    $total_productos = 0;
-    $total_ganancias = 0.0;
+$anios = anios_con_pedidos();
+$anio = (int)($_GET['anio'] ?? $anios[0]);
+if (!in_array($anio, $anios, true)) {
+    $anio = $anios[0];
 }
+$s = estadisticas_ventas($anio);
+$meses = meses_es();
 
-$ventas_mensuales = array_fill(0, 12, 0);
-
-$aggMensual = $colDetalle->aggregate([
-    [
-        '$lookup' => [
-            'from'         => 'pedidos',
-            'localField'   => 'pedido_id',
-            'foreignField' => '_id',
-            'as'           => 'pedido'
-        ]
-    ],
-    ['$unwind' => '$pedido'],
-    [
-        '$group' => [
-            '_id'      => ['mes' => ['$month' => '$pedido.fecha']],
-            'ganancia' => ['$sum' => '$subtotal']
-        ]
-    ]
-]);
-
-foreach ($aggMensual as $doc) {
-    $mes = (int)($doc['_id']['mes'] ?? 0); // 1..12
-    $ganancia = (float)($doc['ganancia'] ?? 0);
-    if ($mes >= 1 && $mes <= 12) {
-        $ventas_mensuales[$mes - 1] = $ganancia;
-    }
-}
-
-$top_productos = [];
-$aggTop = $colDetalle->aggregate([
-    [
-        '$group' => [
-            '_id'            => '$nombre_producto',
-            'total_vendidos' => ['$sum' => '$cantidad']
-        ]
-    ],
-    ['$sort'  => ['total_vendidos' => -1]],
-    ['$limit' => 5]
-]);
-
-foreach ($aggTop as $doc) {
-    $top_productos[] = [
-        'nombre'         => (string)($doc['_id'] ?? 'Sin nombre'),
-        'total_vendidos' => (int)($doc['total_vendidos'] ?? 0)
-    ];
-}
-
-$meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+admin_inicio('Estadísticas de ventas', 'estadisticas', ['acciones' =>
+    boton_exportar('exportar_estadisticas_excel.php', ['anio' => $anio]) . boton_exportar('reporte_ventas_pdf.php', ['anio' => $anio], 'Reporte PDF', 'pdf')]);
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Estadísticas de Ventas - CERAMICENTRO</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            background-color: #f3f4f6;
-        }
-        .header {
-            background-color: #c62828;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .stat-card h2 {
-            margin-bottom: 5px;
-            color: #333;
-        }
-        .btn-volver {
-            background-color: #c62828;
-            color: white;
-        }
-        footer {
-            font-size: 0.9rem;
-            color: #888;
-            margin-top: 40px;
-        }
-    </style>
-</head>
-<body>
+<form method="get" class="d-flex flex-wrap align-items-end gap-2 mb-4" data-sin-bloqueo>
+    <div>
+        <label class="form-label small" for="anio">Año</label>
+        <select id="anio" name="anio" class="form-select" onchange="this.form.submit()">
+            <?php foreach ($anios as $a): ?><option <?= $a === $anio ? 'selected' : '' ?>><?= (int)$a ?></option><?php endforeach; ?>
+        </select>
+    </div>
+    <noscript><button class="btn btn-cs" type="submit">Ver</button></noscript>
+    <p class="small text-secondary mb-2">Solo se cuentan pedidos pagados, en preparación, enviados o entregados.</p>
+</form>
 
-<div class="header">
-    <h1><i class="bi bi-graph-up"></i> Estadísticas de Ventas</h1>
+<div class="row g-3 mb-4">
+    <?php foreach ([
+        ['receipt', $s['ventas'], 'Ventas realizadas'],
+        ['box-seam', number_format($s['unidades'], 0, ',', '.'), 'Productos vendidos (unidades)'],
+        ['cash-coin', dinero($s['ingresos']), 'Ingresos totales'],
+        ['graph-up-arrow', dinero($s['ticket']), 'Valor promedio por pedido'],
+    ] as [$icono, $valor, $etiqueta]): ?>
+    <div class="col-sm-6 col-xl-3"><div class="kpi"><div class="kpi-icono" aria-hidden="true"><i class="bi bi-<?= e($icono) ?>"></i></div><div><div class="kpi-valor"><?= e($valor) ?></div><div class="kpi-etiqueta"><?= e($etiqueta) ?></div></div></div></div>
+    <?php endforeach; ?>
 </div>
 
-<div class="container mt-5">
-    <div class="row text-center mb-4">
-        <div class="col-md-4">
-            <div class="stat-card">
-                <h2><?= $total_ventas ?></h2>
-                <p>Ventas Realizadas</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <h2><?= $total_productos ?></h2>
-                <p>Productos Vendidos</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <h2>$<?= number_format($total_ganancias, 2) ?></h2>
-                <p>Ganancia Total</p>
-            </div>
+<div class="row g-4">
+    <div class="col-xl-8">
+        <div class="cs-panel h-100">
+            <h2 class="cs-panel-titulo">Ingresos mensuales <?= (int)$anio ?></h2>
+            <div style="position:relative;min-height:280px"><canvas id="graficoVentas" role="img" aria-label="Gráfico de barras de ingresos mensuales de <?= (int)$anio ?>"></canvas></div>
+            <details class="mt-3">
+                <summary class="small fw-semibold">Ver datos en tabla</summary>
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm">
+                        <thead><tr><th scope="col">Mes</th><th scope="col" class="text-end">Pedidos</th><th scope="col" class="text-end">Ingresos</th></tr></thead>
+                        <tbody><?php foreach ($meses as $n => $m): ?><tr><td><?= e($m) ?></td><td class="text-end"><?= (int)$s['pedidos_mes'][$n] ?></td><td class="text-end"><?= e(dinero($s['mensual'][$n])) ?></td></tr><?php endforeach; ?></tbody>
+                    </table>
+                </div>
+            </details>
         </div>
     </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h4 class="card-title">Ganancias Mensuales</h4>
-            <canvas id="graficoVentas" height="100"></canvas>
-        </div>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h4 class="card-title">Top 5 Productos Más Vendidos</h4>
-            <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Producto</th>
-                    <th>Cantidad Vendida</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($top_productos as $i => $prod): ?>
-                    <tr>
-                        <td><?= $i + 1 ?></td>
-                        <td><?= htmlspecialchars($prod['nombre']) ?></td>
-                        <td><?= $prod['total_vendidos'] ?></td>
-                    </tr>
+    <div class="col-xl-4">
+        <div class="cs-panel mb-4">
+            <h2 class="cs-panel-titulo">Top 5 productos más vendidos</h2>
+            <?php if (!$s['top']): ?><p class="text-secondary mb-0">Sin ventas en <?= (int)$anio ?>.</p><?php else: ?>
+            <ol class="list-group list-group-numbered list-group-flush">
+                <?php foreach ($s['top'] as $t): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-start px-0">
+                    <div class="ms-2 me-auto"><div class="fw-semibold"><?= e($t['nombre']) ?></div><span class="small text-secondary"><?= e(dinero($t['ingresos'])) ?></span></div>
+                    <span class="badge rounded-pill text-bg-danger"><?= (int)$t['cantidad'] ?> und.</span>
+                </li>
                 <?php endforeach; ?>
-            </tbody>
-            </table>
+            </ol>
+            <?php endif; ?>
+        </div>
+        <div class="cs-panel">
+            <h2 class="cs-panel-titulo">Pedidos por estado</h2>
+            <?php if (!$s['por_estado']): ?><p class="text-secondary mb-0">Sin pedidos en <?= (int)$anio ?>.</p><?php else: ?>
+            <ul class="list-unstyled mb-0">
+                <?php foreach ($s['por_estado'] as $estado => $d): ?>
+                <li class="d-flex justify-content-between align-items-center py-1"><?= estado_badge($estado) ?><span><?= (int)$d['n'] ?> · <?= e(dinero($d['total'])) ?></span></li>
+                <?php endforeach; ?>
+            </ul>
+            <?php endif; ?>
         </div>
     </div>
-
-    <a href="exportar_estadisticas_excel.php" class="btn btn-success mb-3">
-        <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
-    </a>
-    <br>
-    <a href="panel_admin.php" class="btn btn-volver">
-        <i class="bi bi-arrow-left-circle"></i> Volver
-    </a>
 </div>
-
 <script>
-const ctx = document.getElementById('graficoVentas').getContext('2d');
-const grafico = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode($meses) ?>,
-        datasets: [{
-            label: 'Ganancias ($)',
-            data: <?= json_encode($ventas_mensuales) ?>,
-            backgroundColor: '#e53935'
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.Chart) { return; }
+    new Chart(document.getElementById('graficoVentas'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode(array_values($meses), JSON_UNESCAPED_UNICODE) ?>,
+            datasets: [{ label: 'Ingresos (COP)', data: <?= json_encode(array_values($s['mensual'])) ?>, backgroundColor: '#c62828', borderRadius: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return ' $' + Math.round(c.parsed.y).toLocaleString('es-CO'); } } } },
+            scales: { y: { beginAtZero: true, ticks: { callback: function (v) { return '$' + Number(v).toLocaleString('es-CO'); } } } }
         }
-    }
+    });
 });
 </script>
-
-<hr>
-<center><footer>© 2025 <strong>CERAMICENTRO</strong> - Todos los derechos reservados</footer></center>
-<br>
-</body>
-</html>
+<?php admin_fin(['scripts' => ['https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.js']]); ?>

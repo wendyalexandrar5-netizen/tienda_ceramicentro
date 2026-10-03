@@ -1,0 +1,25 @@
+# Versión de respaldo (si mod_rewrite no está activo). La versión principal es robots.php.
+User-agent: *
+Disallow: /panel_admin.php
+Disallow: /agregar_producto.php
+Disallow: /editar_producto.php
+Disallow: /ver_productos.php
+Disallow: /inventario.php
+Disallow: /ver_usuarios.php
+Disallow: /crear_admin.php
+Disallow: /historial_productos.php
+Disallow: /historial_pedidos_admin.php
+Disallow: /estadisticas_ventas.php
+Disallow: /mensajes_contacto.php
+Disallow: /tienda.php
+Disallow: /ver_carrito.php
+Disallow: /realizar_pedido.php
+Disallow: /pago_pse.php
+Disallow: /pago_exitoso.php
+Disallow: /mis_pedidos.php
+Disallow: /ver_pedido.php
+Disallow: /mi_cuenta.php
+Disallow: /api/
+Disallow: /config/
+Disallow: /includes/
+Disallow: /vendor/

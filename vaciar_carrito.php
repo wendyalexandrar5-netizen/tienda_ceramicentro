@@ -1,13 +1,11 @@
 <?php
-session_start();
-
-if (!isset($_SESSION['usuario'])) {
-    header("Location: login.php");
-    exit;
+/** Vacía el carrito (POST con token CSRF). */
+require_once __DIR__ . '/includes/tienda.php';
+requerir_sesion('cliente');
+if (!es_post()) {
+    redirigir('ver_carrito.php');
 }
-
-unset($_SESSION['carrito']);
-
-header("Location: ver_carrito.php");
-exit;
-?>
+csrf_verificar();
+carrito_vaciar();
+flash('success', 'Tu carrito quedó vacío.');
+redirigir('ver_carrito.php');

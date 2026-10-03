@@ -1,79 +1,43 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-include("verificar_acceso.php");
-verificarSesion("administrador");
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
-
-function isValidObjectId($id){
-    return is_string($id) && preg_match('/^[a-f\d]{24}$/i', $id);
+/** Elimina un producto (solo por POST con token CSRF) y registra el historial. */
+require_once __DIR__ . '/includes/admin.php';
+requerir_sesion('administrador');
+if (!es_post()) {
+    flash('info', 'Para eliminar un producto usa el botón «Eliminar» del listado.');
+    redirigir('ver_productos.php');
 }
+csrf_verificar();
 
-if (!isset($_GET["id"]) || !isValidObjectId($_GET["id"])) {
-    header("Location: agregar_productos.php?mensaje=ID inválido");
-    exit;
-}
-
-$id = new ObjectId($_GET["id"]);
-
-$db = mongo();
-$colProductos  = $db->selectCollection("productos");
-$colCategorias = $db->selectCollection("categorias");
-$colHistorial  = $db->selectCollection("historial_productos");
-
-$producto = $colProductos->findOne(["_id" => $id]);
-
+$producto = producto_por_id((string)($_POST['id'] ?? ''));
 if (!$producto) {
-    header("Location: agregar_productos.php?mensaje=Producto no encontrado");
-    exit;
+    flash('error', 'El producto no existe o ya fue eliminado.');
+    redirigir('ver_productos.php');
+}
+$catNombre = 'Sin categoría';
+if (!empty($producto['categoria_id'])) {
+    $cat = mongo()->selectCollection('categorias')->findOne(['_id' => $producto['categoria_id']]);
+    $catNombre = (string)($cat['nombre'] ?? 'Sin categoría');
 }
 
-$categoriaNombre = "N/A";
-
-if (isset($producto["categoria_id"]) && $producto["categoria_id"] instanceof ObjectId) {
-    $cat = $colCategorias->findOne(["_id" => $producto["categoria_id"]]);
-    if ($cat) {
-        $categoriaNombre = $cat["nombre"] ?? "N/D";
-    }
-}
-
-$res = $colProductos->deleteOne(["_id" => $id]);
-
+$res = mongo()->selectCollection('productos')->deleteOne(['_id' => $producto['_id']]);
 if ($res->getDeletedCount() !== 1) {
-    header("Location: agregar_productos.php?mensaje=Error al eliminar producto");
-    exit;
+    flash('error', 'No se pudo eliminar el producto. Intenta de nuevo.');
+    redirigir('ver_productos.php');
 }
 
-if (!empty($producto["imagen"]) && file_exists($producto["imagen"])) {
-    @unlink($producto["imagen"]);
+// Se conserva el archivo de imagen si algún pedido lo referencia (comprobantes / historial)
+$img = imagen_ruta_segura((string)($producto['imagen'] ?? ''));
+$enUso = $img !== '' && mongo()->selectCollection('pedido_detalle')->countDocuments(['imagen' => $img], ['limit' => 1]) > 0;
+if ($img !== '' && !$enUso && strpos($img, 'imagenes/') === 0 && is_file(CS_ROOT . '/' . $img)) {
+    @unlink(CS_ROOT . '/' . $img);
 }
 
-$adminId = $_SESSION["usuario"]["id"] ?? null;
-$adminOid = (isValidObjectId($adminId)) ? new ObjectId($adminId) : null;
-$nombreAdmin = $_SESSION["usuario"]["nombre"] ?? "";
+registrar_historial('elimino', $producto, [
+    'Producto eliminado',
+    'Precio: ' . dinero($producto['precio'] ?? 0),
+    'Stock: ' . (int)($producto['stock'] ?? 0),
+    'Categoría: ' . $catNombre,
+], $catNombre, null);
 
-$productoNombre = $producto["nombre"] ?? "Producto sin nombre";
-
-$cambios = [
-    "Producto eliminado",
-    "Precio: " . ($producto["precio"] ?? "N/D"),
-    "Stock: " . ($producto["stock"] ?? "N/D"),
-    "Categoría: " . $categoriaNombre
-];
-
-$colHistorial->insertOne([
-    "id_admin"        => $adminOid,
-    "nombre_admin"    => $nombreAdmin,
-    "id_producto"     => $id,
-    "producto_nombre" => $productoNombre,
-    "accion"          => "elimino",
-    "cambios"         => $cambios,
-    "categoria_anterior" => $categoriaNombre,
-    "categoria_nueva"    => null,
-    "fecha"           => new UTCDateTime()
-]);
-
-header("Location: agregar_producto.php?mensaje=Producto eliminado correctamente");
-exit;
+flash('success', 'Producto «' . ($producto['nombre'] ?? '') . '» eliminado correctamente.');
+redirigir('ver_productos.php');

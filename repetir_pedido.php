@@ -1,65 +1,35 @@
 <?php
-session_start();
-
-require __DIR__ . "/vendor/autoload.php";
-include("verificar_acceso.php");
-verificarSesion("cliente");
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-
-if (!isset($_GET["id"]) || !preg_match('/^[a-f\d]{24}$/i', $_GET["id"])) {
-    header("Location: mis_pedidos.php");
-    exit;
+/** Agrega al carrito los productos de un pedido anterior (respetando el inventario actual). */
+require_once __DIR__ . '/includes/tienda.php';
+require_once __DIR__ . '/includes/pedidos.php';
+requerir_sesion('cliente');
+if (!es_post()) {
+    redirigir('mis_pedidos.php');
 }
+csrf_verificar();
 
-$pedidoId = $_GET["id"];
-
-$db = mongo();
-$colDetalles  = $db->selectCollection("pedido_detalle");
-$colProductos = $db->selectCollection("productos");
-
-$detallesCursor = $colDetalles->find(
-    ["pedido_id" => new ObjectId($pedidoId)],
-    ["typeMap" => ["root" => "array", "document" => "array"]]
-);
-
-$detalles = iterator_to_array($detallesCursor, false);
-
-if (empty($detalles)) {
-    header("Location: mis_pedidos.php?error=Pedido sin detalles");
-    exit;
+$pedido = pedido_de_usuario((string)($_POST['id'] ?? ''), usuario_actual()['id']);
+if (!$pedido) {
+    flash('error', 'No encontramos ese pedido en tu cuenta.');
+    redirigir('mis_pedidos.php');
 }
-
-foreach ($detalles as $d) {
-
-    $productoId = (string)$d["producto_id"];
-    $cantidad   = (int)$d["cantidad"];
-
-    $prod = $colProductos->findOne(
-        ["_id" => new ObjectId($productoId)],
-        ["typeMap" => ["root"=>"array","document"=>"array"]]
-    );
-
-    if (!$prod) {
-        continue;
-    }
-
-    if (isset($_SESSION["carrito"][$productoId])) {
-        $_SESSION["carrito"][$productoId]["cantidad"] += $cantidad;
+$agregados = 0;
+$avisos = [];
+foreach (pedido_detalles($pedido) as $d) {
+    $r = carrito_agregar((string)$d['producto_id'], (int)$d['cantidad']);
+    if ($r['ok']) {
+        $agregados++;
+        if (strpos($r['mensaje'], 'Solo hay') !== false) {
+            $avisos[] = $r['mensaje'];
+        }
     } else {
-        $_SESSION["carrito"][$productoId] = [
-            "nombre"   => $prod["nombre"],
-            "precio"   => (float)$prod["precio"],
-            "cantidad" => $cantidad,
-            "imagen"   => $prod["imagen"] ?? ""
-        ];
+        $avisos[] = $r['mensaje'];
     }
 }
-
-header("Location: ver_carrito.php?ok=repetido");
-exit;
-
-?>
-
-exit;
+if ($agregados) {
+    flash('success', 'Agregamos ' . $agregados . ' producto' . ($agregados === 1 ? '' : 's') . ' del pedido ' . pedido_numero($pedido) . ' a tu carrito.');
+}
+foreach ($avisos as $a) {
+    flash('warning', $a);
+}
+redirigir($agregados ? 'ver_carrito.php' : 'ver_pedido.php', $agregados ? [] : ['id' => (string)$pedido['_id']]);

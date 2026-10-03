@@ -1,48 +1,15 @@
 <?php
+/** GET /api/api_categorias.php -> {success, categorias:[{id,nombre,descripcion}]} */
+require_once __DIR__ . '/_comun.php';
+api_metodo('GET');
 
-require __DIR__ . '/../vendor/autoload.php';
-include("../conexion_mongo.php");
-
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
+$categorias = [];
+foreach (mongo()->selectCollection('categorias')->find([], ['sort' => ['nombre' => 1]]) as $cat) {
+    $categorias[] = [
+        'id'          => (string)$cat['_id'],
+        'nombre'      => (string)($cat['nombre'] ?? 'Sin nombre'),
+        'descripcion' => (string)($cat['descripcion'] ?? ''),
+    ];
 }
-
-try {
-
-    $db = mongo();
-
-    $colCategorias = $db->selectCollection("categorias");
-
-    $categoriasCursor = $colCategorias->find([], [
-        "sort" => ["nombre" => 1]
-    ]);
-
-    $categorias = [];
-
-    foreach($categoriasCursor as $cat){
-
-        $categorias[] = [
-            "id" => (string)$cat["_id"],
-            "nombre" => $cat["nombre"] ?? "Sin nombre"
-        ];
-    }
-
-    echo json_encode([
-        "success" => true,
-        "categorias" => $categorias
-    ], JSON_UNESCAPED_UNICODE);
-
-} catch(Exception $e){
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Error cargando categorías",
-        "error" => $e->getMessage()
-    ]);
-}
+header('Cache-Control: public, max-age=60');
+json_respuesta(['success' => true, 'categorias' => $categorias]);

@@ -1,438 +1,61 @@
 <?php
-include("verificar_acceso.php");
-verificarSesion('administrador');
+/** Historial de cambios de productos (auditoría de administradores). */
+require_once __DIR__ . '/includes/admin.php';
+require_once __DIR__ . '/includes/filtros_historial.php';
+requerir_sesion('administrador');
 
-require __DIR__ . '/vendor/autoload.php';
-include("conexion_mongo.php");
+[$f, $q] = filtros_historial();
+$col = mongo()->selectCollection('historial_productos');
+$porPagina = 30;
+$total = $col->countDocuments($q);
+$paginas = max(1, (int)ceil($total / $porPagina));
+$pagina = min($paginas, max(1, (int)($_GET['pagina'] ?? 1)));
+$filas = iterator_to_array($col->find($q, ['sort' => ['fecha' => -1], 'skip' => ($pagina - 1) * $porPagina, 'limit' => $porPagina]), false);
+$params = array_filter($f);
 
-use MongoDB\BSON\UTCDateTime;
-
-date_default_timezone_set("America/Bogota");
-
-$db = mongo();
-$colHist = $db->selectCollection('historial_productos');
-
-$fecha_desde = $_GET['fecha_desde'] ?? '';
-$fecha_hasta = $_GET['fecha_hasta'] ?? '';
-
-$filter = [];
-
-if (!empty($fecha_desde) && !empty($fecha_hasta)) {
-
-    $tz = new DateTimeZone("America/Bogota");
-
-    $desde = new DateTime(
-        $fecha_desde . ' 00:00:00',
-        $tz
-    );
-
-    $hasta = new DateTime(
-        $fecha_hasta . ' 23:59:59',
-        $tz
-    );
-
-    $filter['fecha'] = [
-        '$gte' => new UTCDateTime(
-            $desde->getTimestamp() * 1000
-        ),
-        '$lte' => new UTCDateTime(
-            $hasta->getTimestamp() * 1000
-        )
-    ];
-}
-
-$cursor = $colHist->find(
-    $filter,
-    [
-        'sort'    => ['fecha' => -1],
-        'typeMap' => [
-            'root'=>'array',
-            'document'=>'array',
-            'array'=>'array'
-        ]
-    ]
-);
-
-$filas = iterator_to_array($cursor, false);
+admin_inicio('Historial de productos', 'historial', ['acciones' => boton_exportar('exportar_historial_excel.php', $params)]);
 ?>
-
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <title>
-        Historial de Cambios - CERAMICENTRO
-    </title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-        rel="stylesheet"
-    >
-
-    <style>
-
-        body{
-            background-color:#f9fafb;
-        }
-
-        .header{
-            background:#c62828;
-            color:white;
-            padding:20px;
-            text-align:center;
-        }
-
-        .btn-volver{
-            background:#e53935;
-            color:white;
-            border:none;
-            padding:10px 15px;
-            border-radius:10px;
-        }
-
-        .btn-volver:hover{
-            background:#b71c1c;
-        }
-
-        .accion-agrego{
-            background:#4caf50;
-            color:white;
-            padding:3px 8px;
-            border-radius:5px;
-        }
-
-        .accion-edito{
-            background:#ff9800;
-            color:white;
-            padding:3px 8px;
-            border-radius:5px;
-        }
-
-        .accion-elimino{
-            background:#f44336;
-            color:white;
-            padding:3px 8px;
-            border-radius:5px;
-        }
-
-        pre{
-            white-space:pre-wrap;
-            font-size:.9rem;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<div class="header mb-4">
-
-    <h1>
-        <i class="bi bi-clock-history"></i>
-        Historial de Productos
-    </h1>
-
-</div>
-
-<div class="container">
-
-    <form method="GET" class="row g-3 mb-4">
-
-        <div class="col-md-4">
-
-            <label class="form-label">
-                Desde:
-            </label>
-
-            <input
-                type="date"
-                class="form-control"
-                name="fecha_desde"
-                value="<?= htmlspecialchars($fecha_desde) ?>"
-            >
-
+<form method="get" class="cs-panel mb-4" data-sin-bloqueo>
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-2"><label class="form-label small" for="fecha_desde">Desde</label><input type="date" id="fecha_desde" name="fecha_desde" class="form-control" value="<?= e($f['fecha_desde']) ?>"></div>
+        <div class="col-6 col-md-2"><label class="form-label small" for="fecha_hasta">Hasta</label><input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control" value="<?= e($f['fecha_hasta']) ?>"></div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small" for="accion">Acción</label>
+            <select id="accion" name="accion" class="form-select">
+                <option value="">Todas</option>
+                <?php foreach (['agrego', 'edito', 'elimino'] as $a): ?><option value="<?= $a ?>" <?= $f['accion'] === $a ? 'selected' : '' ?>><?= e(accion_texto($a)) ?></option><?php endforeach; ?>
+            </select>
         </div>
-
-        <div class="col-md-4">
-
-            <label class="form-label">
-                Hasta:
-            </label>
-
-            <input
-                type="date"
-                class="form-control"
-                name="fecha_hasta"
-                value="<?= htmlspecialchars($fecha_hasta) ?>"
-            >
-
-        </div>
-
-        <div class="col-md-4 d-flex align-items-end gap-2">
-
-            <button class="btn btn-primary">
-
-                <i class="bi bi-filter"></i>
-
-                Filtrar
-
-            </button>
-
-            <a
-                href="historial_productos.php"
-                class="btn btn-outline-secondary"
-            >
-
-                <i class="bi bi-x-circle"></i>
-
-                Limpiar
-
-            </a>
-
-        </div>
-
-    </form>
-
-    <label class="form-label">
-        <strong>Buscar:</strong>
-    </label>
-
-    <input
-        type="text"
-        id="buscar"
-        class="form-control mb-3"
-        placeholder="Buscar en todos los campos..."
-    >
-
-    <div class="table-responsive">
-
-        <table
-            class="table table-bordered table-hover shadow-sm"
-            id="tablaHistorial"
-        >
-
-            <thead class="table-light">
-
-                <tr>
-
-                    <th>Usuario</th>
-
-                    <th>Acción</th>
-
-                    <th>Producto</th>
-
-                    <th>Categoría Antes</th>
-
-                    <th>Categoría Después</th>
-
-                    <th>Cambios</th>
-
-                    <th>Fecha</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                <?php foreach ($filas as $row):
-
-                    $accion = strtolower(
-                        $row['accion'] ?? ''
-                    );
-
-                    $accion_class = match($accion) {
-
-                        'agrego'  => 'accion-agrego',
-
-                        'edito'   => 'accion-edito',
-
-                        'elimino' => 'accion-elimino',
-
-                        default   => ''
-                    };
-
-                    $cambios =
-                    $row['cambios'] ?? 'N/A';
-
-                    if (is_array($cambios)) {
-
-                        $cambios = implode(
-                            "\n• ",
-                            array_map(
-                                'htmlspecialchars',
-                                $cambios
-                            )
-                        );
-
-                        $cambios =
-                        "• " . $cambios;
-
-                    } else {
-
-                        $cambios =
-                        htmlspecialchars($cambios);
-                    }
-
-                    $categoriaAntes =
-                    $row["categoria_anterior"] ?? 'N/A';
-
-                    $categoriaDesp =
-                    $row["categoria_nueva"] ?? 'N/A';
-
-                    if ($row['fecha'] ?? null) {
-
-                        $fechaObj =
-                        $row['fecha']->toDateTime();
-
-                        $fechaObj->setTimezone(
-                            new DateTimeZone(
-                                "America/Bogota"
-                            )
-                        );
-
-                        $fecha =
-                        $fechaObj->format(
-                            'Y-m-d H:i:s'
-                        );
-
-                    } else {
-
-                        $fecha =
-                        'Fecha no disponible';
-                    }
-
-                ?>
-
-                <tr>
-
-                    <td>
-                        <?= htmlspecialchars(
-                            $row['nombre_admin']
-                            ?? 'Desconocido'
-                        ) ?>
-                    </td>
-
-                    <td>
-
-                        <span class="<?= $accion_class ?>">
-
-                            <?= ucfirst($accion) ?>
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        <?= htmlspecialchars(
-                            $row['producto_nombre']
-                            ?? 'N/A'
-                        ) ?>
-
-                    </td>
-
-                    <td>
-
-                        <?= htmlspecialchars(
-                            $categoriaAntes
-                        ) ?>
-
-                    </td>
-
-                    <td>
-
-                        <?= htmlspecialchars(
-                            $categoriaDesp
-                        ) ?>
-
-                    </td>
-
-                    <td>
-
-                        <pre><?= $cambios ?></pre>
-
-                    </td>
-
-                    <td>
-
-                        <?= $fecha ?>
-
-                    </td>
-
-                </tr>
-
-                <?php endforeach; ?>
-
-            </tbody>
-
-        </table>
-
+        <div class="col-6 col-md-4"><label class="form-label small" for="buscar">Buscar (producto, admin o cambio)</label><input type="search" id="buscar" name="buscar" class="form-control" value="<?= e($f['buscar']) ?>"></div>
+        <div class="col-md-2 d-flex gap-2"><button class="btn btn-cs flex-grow-1" type="submit"><i class="bi bi-filter" aria-hidden="true"></i> Filtrar</button>
+            <?php if ($params): ?><a href="<?= e(url('historial_productos.php')) ?>" class="btn btn-outline-secondary" aria-label="Limpiar filtros"><i class="bi bi-x-lg" aria-hidden="true"></i></a><?php endif; ?></div>
     </div>
-
-    <a
-        href="exportar_historial_excel.php"
-        class="btn btn-success mt-3"
-    >
-
-        <i class="bi bi-file-earmark-excel"></i>
-
-        Exportar a Excel
-
-    </a>
-
-    <br><br>
-
-    <a
-        href="panel_admin.php"
-        class="btn btn-volver"
-    >
-
-        <i class="bi bi-arrow-left-circle"></i>
-
-        Volver
-
-    </a>
-
+</form>
+<p class="text-secondary small" role="status"><?= (int)$total ?> registro(s)<?= $paginas > 1 ? ' · página ' . $pagina . ' de ' . $paginas : '' ?></p>
+<div class="cs-panel p-0 p-md-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle tabla-apilable mb-0">
+            <thead><tr><th scope="col">Fecha</th><th scope="col">Administrador</th><th scope="col">Acción</th><th scope="col">Producto</th><th scope="col">Categoría antes</th><th scope="col">Categoría después</th><th scope="col">Cambios</th></tr></thead>
+            <tbody>
+            <?php foreach ($filas as $r): $a = strtolower((string)($r['accion'] ?? '')); $cambios = $r['cambios'] ?? []; ?>
+                <tr>
+                    <td data-label="Fecha" class="text-nowrap"><?= e(fecha_local($r['fecha'] ?? null, 'd/m/Y h:i a')) ?></td>
+                    <td data-label="Administrador"><?= e($r['nombre_admin'] ?? 'Desconocido') ?></td>
+                    <td data-label="Acción"><span class="accion-<?= e($a) ?>"><?= e(accion_texto($a)) ?></span></td>
+                    <td data-label="Producto" class="fw-semibold"><?= e($r['producto_nombre'] ?? 'N/A') ?></td>
+                    <td data-label="Categoría antes"><?= e($r['categoria_anterior'] ?? '—') ?></td>
+                    <td data-label="Categoría después"><?= e($r['categoria_nueva'] ?? '—') ?></td>
+                    <td data-label="Cambios" class="text-start">
+                        <?php if (is_array($cambios)): ?>
+                        <ul class="lista-cambios"><?php foreach ($cambios as $c): ?><li><?= e($c) ?></li><?php endforeach; ?></ul>
+                        <?php else: ?><?= e($cambios) ?><?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            <?php if (!$filas): ?><tr><td colspan="7" class="text-center text-secondary py-4">No hay registros con estos filtros.</td></tr><?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<script>
-
-document
-.getElementById("buscar")
-.addEventListener("keyup", function () {
-
-    const valor =
-    this.value.toLowerCase();
-
-    const filas =
-    document.querySelectorAll(
-        "#tablaHistorial tbody tr"
-    );
-
-    filas.forEach(f => {
-
-        f.style.display =
-        f.innerText
-        .toLowerCase()
-        .includes(valor)
-
-        ? ""
-
-        : "none";
-    });
-});
-
-</script>
-
-</body>
-</html>
+<?php paginacion_html($pagina, $paginas, 'historial_productos.php', $params); ?>
+<?php admin_fin(); ?>

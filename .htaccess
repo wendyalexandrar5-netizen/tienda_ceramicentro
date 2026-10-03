@@ -1,0 +1,77 @@
+# =================================================================
+# CERAMISHOP – configuración de Apache
+# Funciona en local (XAMPP/WAMP con HTTP) y en producción (HTTPS).
+# =================================================================
+
+DirectoryIndex index.php index.html
+Options -Indexes
+AddDefaultCharset UTF-8
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # --- HTTPS en producción -------------------------------------------------
+    # Descomente las 3 líneas siguientes SOLO cuando el certificado SSL esté instalado.
+    # (Alternativa: 'forzar_https' => true en config/config.php). Localhost no se redirige.
+    # RewriteCond %{HTTPS} off
+    # RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1|192\.168\.|10\.) [NC]
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # --- Páginas antiguas .html -> nuevas .php (redirección permanente, SEO) ---
+    RewriteRule ^(index|nosotros|productos|tyc)\.html$ $1.php [L,R=301,QSA]
+
+    # --- Sitemap y robots dinámicos ------------------------------------------
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
+    RewriteRule ^robots\.txt$ robots.php [L]
+    RewriteRule ^favicon\.ico$ imagenes/logosinfondo.png [L]
+
+    # --- Bloquear archivos internos y de configuración ------------------------
+    RewriteRule ^(composer\.(json|lock)|README\.md|\.git.*|\.env.*)$ - [F,L]
+    RewriteRule ^(vendor|config|includes|logs|scripts|tests|mobile-app)(/|$) - [F,L]
+
+    # --- Página 404 personalizada para rutas inexistentes ---------------------
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ 404.php [L]
+</IfModule>
+
+# --- Cabeceras de seguridad para archivos estáticos -------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # HSTS: active solo cuando todo el sitio funcione por HTTPS
+    # Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+# --- Caché de recursos estáticos (rendimiento) ------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/avif "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType text/javascript "access plus 7 days"
+</IfModule>
+
+# --- Compresión -------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/javascript text/javascript application/json image/svg+xml
+</IfModule>
+
+# --- Nunca servir archivos de respaldo, logs ni configuración ---------------
+<FilesMatch "\.(log|bak|sql|ini|sh|lock|dist|env)$|^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Si mod_rewrite no está activo, use la ruta real de la tienda, por ejemplo:
+# ErrorDocument 404 /tiendaonline_mongodb/404.php

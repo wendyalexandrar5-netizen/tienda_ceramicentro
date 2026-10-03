@@ -1,464 +1,253 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-include("verificar_acceso.php");
-verificarSesion('administrador');
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
-
-function isValidObjectId($id) {
-    return is_string($id) && preg_match('/^[a-f\d]{24}$/i', $id);
-}
+/** Añadir productos y gestionar categorías (crear / editar / eliminar). */
+require_once __DIR__ . '/includes/admin.php';
+requerir_sesion('administrador');
 
 $db = mongo();
-$colProductos   = $db->selectCollection("productos");
-$colCategorias  = $db->selectCollection("categorias");
-$colHistorial   = $db->selectCollection("historial_productos");
+$colProductos  = $db->selectCollection('productos');
+$colCategorias = $db->selectCollection('categorias');
 
-$mensaje = $_GET['mensaje'] ?? null;
-$ok      = $_GET['ok'] ?? null;
-$error   = null;
+$errores = [];
+$tab = ($_GET['tab'] ?? '') === 'categorias' ? 'categorias' : 'productos';
+$datos = ['nombre' => '', 'descripcion' => '', 'precio' => '', 'stock' => '', 'categoria' => ''];
 
-$catCursor  = $colCategorias->find([], ["sort" => ["nombre" => 1]]);
-$categorias = iterator_to_array($catCursor, false);
+// Compatibilidad con mensajes enviados por URL desde versiones anteriores
+if (!empty($_GET['mensaje'])) {
+    flash('info', mb_substr((string)$_GET['mensaje'], 0, 200));
+    redirigir('agregar_producto.php');
+}
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["accion"] ?? "") === "agregar_categoria") {
-    $nombreCat = trim($_POST["nombre_categoria"] ?? '');
+if (es_post()) {
+    csrf_verificar();
+    $accion = (string)($_POST['accion'] ?? '');
 
-    if ($nombreCat === '') {
-        $error = "El nombre de la categoría no puede estar vacío.";
-    } else {
-        $existe = $colCategorias->findOne(["nombre" => $nombreCat]);
-        if ($existe) {
-            $error = "La categoría ya existe.";
+    if ($accion === 'agregar_categoria') {
+        $tab = 'categorias';
+        $nombreCat = trim(preg_replace('/\s+/u', ' ', (string)($_POST['nombre_categoria'] ?? '')));
+        $descCat = trim((string)($_POST['descripcion_categoria'] ?? ''));
+        if (mb_strlen($nombreCat) < 2 || mb_strlen($nombreCat) > 60) {
+            $errores['nombre_categoria'] = 'El nombre de la categoría debe tener entre 2 y 60 caracteres.';
+        } elseif (mb_strlen($descCat) > 300) {
+            $errores['descripcion_categoria'] = 'La descripción puede tener máximo 300 caracteres.';
+        } elseif ($colCategorias->findOne(['nombre' => $nombreCat], ['collation' => ['locale' => 'es', 'strength' => 2]])) {
+            $errores['nombre_categoria'] = 'Ya existe una categoría con ese nombre.';
         } else {
-            $colCategorias->insertOne([
-                "nombre" => $nombreCat
-            ]);
-            header("Location: agregar_producto.php?mensaje=Categoría agregada correctamente");
-            exit;
+            $doc = ['nombre' => $nombreCat, 'createdAt' => nowUTC()];
+            if ($descCat !== '') {
+                $doc['descripcion'] = $descCat;
+            }
+            $colCategorias->insertOne($doc);
+            flash('success', 'Categoría «' . $nombreCat . '» agregada correctamente.');
+            redirigir('agregar_producto.php', ['tab' => 'categorias']);
+        }
+    }
+
+    if ($accion === 'agregar_producto') {
+        foreach ($datos as $k => $_) {
+            $datos[$k] = trim((string)($_POST[$k] ?? ''));
+        }
+        $precio = str_replace(',', '.', $datos['precio']);
+        if (mb_strlen($datos['nombre']) < 2 || mb_strlen($datos['nombre']) > 120) {
+            $errores['nombre'] = 'El nombre es obligatorio (2 a 120 caracteres).';
+        }
+        if (mb_strlen($datos['descripcion']) < 5 || mb_strlen($datos['descripcion']) > 2000) {
+            $errores['descripcion'] = 'La descripción es obligatoria (5 a 2000 caracteres).';
+        }
+        if (!is_numeric($precio) || (float)$precio <= 0 || (float)$precio > 1000000000) {
+            $errores['precio'] = 'El precio debe ser un número mayor que 0.';
+        }
+        if (!ctype_digit($datos['stock']) || (int)$datos['stock'] > 1000000) {
+            $errores['stock'] = 'El stock debe ser un número entero igual o mayor que 0.';
+        }
+        $cat = oid($datos['categoria']);
+        $catDoc = $cat ? $colCategorias->findOne(['_id' => $cat]) : null;
+        if (!$catDoc) {
+            $errores['categoria'] = 'Selecciona una categoría válida.';
+        }
+        if (!$errores) {
+            $img = guardar_imagen_subida($_FILES['imagen'] ?? []);
+            if (!$img['ok']) {
+                $errores['imagen'] = $img['error'];
+            }
+        }
+        if (!$errores) {
+            $doc = [
+                'nombre'         => $datos['nombre'],
+                'descripcion'    => $datos['descripcion'],
+                'precio'         => round((float)$precio, 2),
+                'stock'          => (int)$datos['stock'],
+                'categoria_id'   => $cat,
+                'imagen'         => $img['ruta'],
+                'createdAt'      => nowUTC(),
+                'actualizado_en' => nowUTC(),
+            ];
+            $doc['_id'] = $colProductos->insertOne($doc)->getInsertedId();
+            registrar_historial('agrego', $doc, [
+                'Producto agregado',
+                'Precio inicial: ' . dinero($doc['precio']),
+                'Stock inicial: ' . $doc['stock'],
+                'Categoría: ' . ($catDoc['nombre'] ?? 'Desconocida'),
+                'Imagen asignada',
+            ], null, (string)($catDoc['nombre'] ?? ''));
+            flash('success', 'Producto «' . $doc['nombre'] . '» agregado correctamente.');
+            redirigir('agregar_producto.php');
         }
     }
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["accion"] ?? "") === "agregar_producto") {
-
-    $nombre       = trim($_POST["nombre"] ?? "");
-    $descripcion  = trim($_POST["descripcion"] ?? "");
-    $precio       = $_POST["precio"] ?? null;
-    $stock        = $_POST["stock"] ?? null;
-    $categoria_id = $_POST["categoria"] ?? "";
-
-    if ($nombre === '') {
-        $error = "El nombre es obligatorio.";
-    } elseif ($descripcion === '') {
-        $error = "La descripción es obligatoria.";
-    } elseif (!is_numeric($precio) || $precio <= 0) {
-        $error = "El precio debe ser un número positivo.";
-    } elseif (!ctype_digit((string)$stock) || $stock < 0) {
-        $error = "El stock debe ser un número entero no negativo.";
-    } elseif (!isValidObjectId($categoria_id)) {
-        $error = "La categoría seleccionada no es válida.";
-    } elseif (!isset($_FILES["imagen"]) || $_FILES["imagen"]["error"] !== UPLOAD_ERR_OK) {
-        $error = "Debes subir una imagen del producto.";
-    }
-
-    if (!isset($error)) {
-
-        $ext = strtolower(pathinfo($_FILES["imagen"]["name"], PATHINFO_EXTENSION));
-        $permitidas = ["jpg", "jpeg", "png", "gif", "webp"];
-
-        if (!in_array($ext, $permitidas)) {
-            $error = "Formato de imagen NO permitido.";
-        } else {
-
-            $imagenNombre = time() . "_" . uniqid() . "." . $ext;
-            $rutaFinal = "imagenes/" . $imagenNombre;
-
-            if (!is_dir("imagenes")) {
-                mkdir("imagenes", 0775, true);
-            }
-
-            if (!move_uploaded_file($_FILES["imagen"]["tmp_name"], $rutaFinal)) {
-                $error = "Error al subir la imagen.";
-            } else {
-
-                $insert = $colProductos->insertOne([
-                    "nombre"        => $nombre,
-                    "descripcion"   => $descripcion,
-                    "precio"        => (float)$precio,
-                    "stock"         => (int)$stock,
-                    "categoria_id"  => new ObjectId($categoria_id),
-                    "imagen"        => $rutaFinal,
-                    "createdAt"     => new UTCDateTime(),
-                    "actualizado_en"=> new UTCDateTime()
-                ]);
-
-                $productoId = $insert->getInsertedId();
-
-                $adminIdStr = $_SESSION["usuario"]["id"] ?? null;
-                $adminOid   = (isValidObjectId($adminIdStr)) ? new ObjectId($adminIdStr) : null;
-
-                $catDoc = $colCategorias->findOne(["_id" => new ObjectId($categoria_id)]);
-                $nombreCategoria = $catDoc["nombre"] ?? "Desconocida";
-
-                $cambios = [
-                    "Producto agregado",
-                    "Precio inicial: $precio",
-                    "Stock inicial: $stock",
-                    "Categoría: $nombreCategoria",
-                    "Imagen asignada"
-                ];
-
-                $colHistorial->insertOne([
-                    "id_admin"        => $adminOid,
-                    "nombre_admin"    => $_SESSION["usuario"]["nombre"] ?? "",
-                    "id_producto"     => $productoId,
-                    "producto_nombre" => $nombre,
-                    "accion"          => "agrego",
-                    "cambios"         => $cambios,  // ARRAY ✔
-                    "fecha"           => new UTCDateTime()
-                ]);
-
-                header("Location: agregar_producto.php?ok=1");
-                exit;
-            }
-        }
-    }
+$categorias = iterator_to_array($colCategorias->find([], ['sort' => ['nombre' => 1]]), false);
+$conteo = [];
+foreach ($colProductos->aggregate([['$group' => ['_id' => '$categoria_id', 'n' => ['$sum' => 1]]]]) as $c) {
+    $conteo[(string)$c['_id']] = (int)$c['n'];
+}
+$recientes = iterator_to_array($colProductos->find([], ['sort' => ['_id' => -1], 'limit' => 8]), false);
+$mapaCat = [];
+foreach ($categorias as $c) {
+    $mapaCat[(string)$c['_id']] = (string)$c['nombre'];
 }
 
-$prodCursor = $colProductos->find([], ["sort" => ["nombre" => 1]]);
-$productos  = iterator_to_array($prodCursor, false);
-
+admin_inicio('Productos y categorías', 'agregar');
+$inv = fn($c) => isset($errores[$c]) ? ' is-invalid" aria-invalid="true" aria-describedby="err-' . $c : '';
+$err = fn($c) => isset($errores[$c]) ? '<div class="invalid-feedback d-block" id="err-' . $c . '">' . e($errores[$c]) . '</div>' : '';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestión de Productos y Categorías - CERAMICENTRO</title>
+<?php if ($errores): ?>
+<div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> No se guardaron los cambios. Revisa los campos marcados.</div>
+<?php endif; ?>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<ul class="nav nav-tabs admin-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $tab === 'productos' ? 'active' : '' ?>" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab" aria-controls="productos" aria-selected="<?= $tab === 'productos' ? 'true' : 'false' ?>"><i class="bi bi-cart" aria-hidden="true"></i> Productos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $tab === 'categorias' ? 'active' : '' ?>" id="categorias-tab" data-bs-toggle="tab" data-bs-target="#categorias" type="button" role="tab" aria-controls="categorias" aria-selected="<?= $tab === 'categorias' ? 'true' : 'false' ?>"><i class="bi bi-tags" aria-hidden="true"></i> Categorías (<?= count($categorias) ?>)</button>
+    </li>
+</ul>
 
-    <style>
-        body {
-            background-color: #f4f6f9;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #b71c1c, #e53935);
-            color: white;
-            padding: 25px;
-            text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .panel-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #b71c1c;
-        }
-
-        .producto-img {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .nav-tabs .nav-link {
-            font-weight: bold;
-            color: #b71c1c;
-        }
-
-        .nav-tabs .nav-link.active {
-            background-color: #b71c1c;
-            color: white;
-            border-color: #b71c1c;
-        }
-
-        .btn-volver {
-            background: #e53935;
-            color: #fff;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 10px;
-            text-decoration: none;
-        }
-
-        .btn-volver:hover {
-            background: #b71c1c;
-            color: #fff;
-        }
-
-        .table th {
-            vertical-align: middle;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="header">
-    <h1>Panel de Gestión</h1>
-    <p class="mb-0">Productos y Categorías - CERAMISHOP</p>
-</div>
-
-<div class="container mb-5">
-
-    <?php if ($ok): ?>
-        <div class="alert alert-success">Producto agregado correctamente.</div>
-    <?php endif; ?>
-
-    <?php if ($mensaje): ?>
-        <div class="alert alert-info"><?= htmlspecialchars($mensaje) ?></div>
-    <?php endif; ?>
-
-    <?php if ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <ul class="nav nav-tabs mb-4" id="gestionTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active"
-                    id="productos-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#productos"
-                    type="button"
-                    role="tab">
-                🛒 Productos
-            </button>
-        </li>
-
-        <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="categorias-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#categorias"
-                    type="button"
-                    role="tab">
-                🏷️ Categorías
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content">
-
-        <!-- PRODUCTOS -->
-        <div class="tab-pane fade show active" id="productos" role="tabpanel">
-
-            <div class="panel-card">
-                <h3 class="section-title">➕ Agregar Producto</h3>
-
-                <form method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="accion" value="agregar_producto">
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nombre:</label>
-                            <input type="text" name="nombre" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Precio:</label>
-                            <input type="number" name="precio" step="0.01" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Stock:</label>
-                            <input type="number" name="stock" class="form-control" required>
-                        </div>
+<div class="tab-content">
+    <div class="tab-pane fade <?= $tab === 'productos' ? 'show active' : '' ?>" id="productos" role="tabpanel" aria-labelledby="productos-tab" tabindex="0">
+        <div class="cs-panel mb-4">
+            <h2 class="cs-panel-titulo"><i class="bi bi-plus-circle" aria-hidden="true"></i> Agregar producto</h2>
+            <?php if (!$categorias): ?>
+            <div class="alert alert-warning">Primero crea al menos una categoría en la pestaña «Categorías».</div>
+            <?php endif; ?>
+            <form method="post" enctype="multipart/form-data" data-validar novalidate>
+                <?= csrf_campo() ?>
+                <input type="hidden" name="accion" value="agregar_producto">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="nombre">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control<?= $inv('nombre') ?>" required minlength="2" maxlength="120" value="<?= e($datos['nombre']) ?>">
+                        <?= $err('nombre') ?>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Descripción:</label>
-                        <textarea name="descripcion" class="form-control" rows="3" required></textarea>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="precio">Precio (COP, IVA incluido)</label>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0.01" class="form-control<?= $inv('precio') ?>" required inputmode="decimal" value="<?= e($datos['precio']) ?>">
+                        <?= $err('precio') ?>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Categoría:</label>
-                            <select name="categoria" class="form-select" required>
-                                <option value="">Selecciona una categoría</option>
-                                <?php foreach ($categorias as $cat): ?>
-                                    <option value="<?= $cat['_id'] ?>">
-                                        <?= htmlspecialchars($cat["nombre"]) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Imagen:</label>
-                            <input type="file" name="imagen" class="form-control" accept="image/*" required>
-                        </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="stock">Stock (unidades)</label>
+                        <input type="number" id="stock" name="stock" min="0" step="1" class="form-control<?= $inv('stock') ?>" required inputmode="numeric" value="<?= e($datos['stock']) ?>">
+                        <?= $err('stock') ?>
                     </div>
-
-                    <button class="btn btn-primary">
-                        Guardar Producto
-                    </button>
-                </form>
-            </div>
-
-            <div class="panel-card">
-                <h3 class="section-title">📦 Productos Registrados</h3>
-
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover shadow-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Imagen</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th>Precio</th>
-                                <th>Stock</th>
-                                <th>Categoría</th>
-                                <th style="width:170px;">Acciones</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                        <?php foreach ($productos as $p): ?>
-
-                            <?php
-                            $catNombre = "Sin categoría";
-
-                            if (isset($p["categoria_id"]) && $p["categoria_id"] instanceof ObjectId) {
-                                foreach ($categorias as $c) {
-                                    if ((string)$c["_id"] === (string)$p["categoria_id"]) {
-                                        $catNombre = $c["nombre"] ?? "Sin categoría";
-                                        break;
-                                    }
-                                }
-                            }
-                            ?>
-
-                            <tr>
-                                <td>
-                                    <?php if (!empty($p["imagen"])): ?>
-                                        <img src="<?= htmlspecialchars($p["imagen"]) ?>"
-                                             class="producto-img"
-                                             alt="Producto">
-                                    <?php endif; ?>
-                                </td>
-
-                                <td><?= htmlspecialchars($p["nombre"] ?? '') ?></td>
-
-                                <td><?= htmlspecialchars($p["descripcion"] ?? '') ?></td>
-
-                                <td>$<?= number_format((float)($p["precio"] ?? 0), 2) ?></td>
-
-                                <td><?= (int)($p["stock"] ?? 0) ?></td>
-
-                                <td><?= htmlspecialchars($catNombre) ?></td>
-
-                                <td>
-                                    <a href="editar_producto.php?id=<?= $p['_id'] ?>"
-                                       class="btn btn-warning btn-sm">
-                                        Editar
-                                    </a>
-
-                                    <a href="eliminar_producto.php?id=<?= $p['_id'] ?>"
-                                       class="btn btn-danger btn-sm"
-                                       onclick="return confirm('¿Eliminar este producto?');">
-                                        Eliminar
-                                    </a>
-                                </td>
-                            </tr>
-
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- CATEGORÍAS -->
-        <div class="tab-pane fade" id="categorias" role="tabpanel">
-
-            <div class="panel-card">
-                <h3 class="section-title">➕ Agregar Categoría</h3>
-
-                <form method="post">
-                    <input type="hidden" name="accion" value="agregar_categoria">
-
-                    <div class="mb-3">
-                        <label class="form-label">Nueva categoría:</label>
-                        <input type="text" name="nombre_categoria" class="form-control" required>
+                    <div class="col-12">
+                        <label class="form-label" for="descripcion">Descripción</label>
+                        <textarea id="descripcion" name="descripcion" class="form-control<?= $inv('descripcion') ?>" rows="3" required minlength="5" maxlength="2000"><?= e($datos['descripcion']) ?></textarea>
+                        <?= $err('descripcion') ?>
                     </div>
-
-                    <button class="btn btn-success">
-                        Agregar Categoría
-                    </button>
-                </form>
-            </div>
-
-            <div class="panel-card">
-                <h3 class="section-title">🏷️ Categorías Registradas</h3>
-
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover shadow-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nombre</th>
-                                <th style="width:170px;">Acciones</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
+                    <div class="col-md-6">
+                        <label class="form-label" for="categoria">Categoría</label>
+                        <select id="categoria" name="categoria" class="form-select<?= $inv('categoria') ?>" required data-mensaje="Selecciona una categoría.">
+                            <option value="">Selecciona una categoría</option>
                             <?php foreach ($categorias as $cat): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($cat["nombre"]) ?></td>
-
-                                    <td>
-                                        <a href="categoria_editar.php?id=<?= $cat['_id'] ?>"
-                                           class="btn btn-warning btn-sm">
-                                            Editar
-                                        </a>
-
-                                        <a href="categoria_eliminar.php?id=<?= $cat['_id'] ?>"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('¿Eliminar categoría?');">
-                                            Eliminar
-                                        </a>
-                                    </td>
-                                </tr>
+                            <option value="<?= e((string)$cat['_id']) ?>" <?= $datos['categoria'] === (string)$cat['_id'] ? 'selected' : '' ?>><?= e($cat['nombre']) ?></option>
                             <?php endforeach; ?>
-                        </tbody>
-
-                    </table>
+                        </select>
+                        <?= $err('categoria') ?>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="imagen">Imagen</label>
+                        <input type="file" id="imagen" name="imagen" class="form-control<?= $inv('imagen') ?>" accept="image/jpeg,image/png,image/webp,image/gif" required aria-describedby="ayudaImagen" data-mensaje="Selecciona una imagen del producto.">
+                        <div id="ayudaImagen" class="form-text">JPG, PNG, WebP o GIF, máximo 8 MB. Se optimiza automáticamente.</div>
+                        <?= $err('imagen') ?>
+                    </div>
                 </div>
-            </div>
-
+                <button class="btn btn-cs mt-3" type="submit" data-cargando="Guardando producto…"><i class="bi bi-save" aria-hidden="true"></i> Guardar producto</button>
+            </form>
         </div>
 
+        <div class="cs-panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h2 class="cs-panel-titulo mb-0">Agregados recientemente</h2>
+                <a href="<?= e(url('ver_productos.php')) ?>" class="btn btn-sm btn-outline-cs">Ver todos los productos</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle tabla-apilable mb-0">
+                    <thead><tr><th scope="col">Imagen</th><th scope="col">Nombre</th><th scope="col">Precio</th><th scope="col">Stock</th><th scope="col">Categoría</th><th scope="col">Acciones</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($recientes as $p): ?>
+                        <tr>
+                            <td data-label="Imagen"><?= imagen_html((string)($p['imagen'] ?? ''), '', ['class' => 'tabla-img', 'width' => 56, 'height' => 56]) ?></td>
+                            <td data-label="Nombre"><?= e($p['nombre'] ?? '') ?></td>
+                            <td data-label="Precio"><?= e(dinero($p['precio'] ?? 0)) ?></td>
+                            <td data-label="Stock"><?= (int)($p['stock'] ?? 0) ?></td>
+                            <td data-label="Categoría"><?= e($mapaCat[(string)($p['categoria_id'] ?? '')] ?? 'Sin categoría') ?></td>
+                            <td data-label="Acciones" class="celda-acciones"><a href="<?= e(url('editar_producto.php', ['id' => (string)$p['_id']])) ?>" class="btn btn-warning btn-sm"><i class="bi bi-pencil" aria-hidden="true"></i> Editar</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <a href="panel_admin.php" class="btn-volver mt-3 d-inline-block">
-        Volver
-    </a>
-
+    <div class="tab-pane fade <?= $tab === 'categorias' ? 'show active' : '' ?>" id="categorias" role="tabpanel" aria-labelledby="categorias-tab" tabindex="0">
+        <div class="cs-panel mb-4">
+            <h2 class="cs-panel-titulo"><i class="bi bi-plus-circle" aria-hidden="true"></i> Agregar categoría</h2>
+            <form method="post" action="<?= e(url('agregar_producto.php', ['tab' => 'categorias'])) ?>" data-validar novalidate>
+                <?= csrf_campo() ?>
+                <input type="hidden" name="accion" value="agregar_categoria">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label" for="nombre_categoria">Nombre de la categoría</label>
+                        <input type="text" id="nombre_categoria" name="nombre_categoria" class="form-control<?= $inv('nombre_categoria') ?>" required minlength="2" maxlength="60" value="<?= e($_POST['nombre_categoria'] ?? '') ?>">
+                        <?= $err('nombre_categoria') ?>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label" for="descripcion_categoria">Descripción <span class="fw-normal text-secondary">(opcional, se muestra en el catálogo)</span></label>
+                        <input type="text" id="descripcion_categoria" name="descripcion_categoria" class="form-control<?= $inv('descripcion_categoria') ?>" maxlength="300" value="<?= e($_POST['descripcion_categoria'] ?? '') ?>">
+                        <?= $err('descripcion_categoria') ?>
+                    </div>
+                </div>
+                <button class="btn btn-success mt-3" type="submit" data-cargando="Agregando…"><i class="bi bi-tag" aria-hidden="true"></i> Agregar categoría</button>
+            </form>
+        </div>
+        <div class="cs-panel">
+            <h2 class="cs-panel-titulo">Categorías registradas</h2>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle tabla-apilable mb-0">
+                    <thead><tr><th scope="col">Nombre</th><th scope="col">Descripción</th><th scope="col">Productos</th><th scope="col">Acciones</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($categorias as $cat): $n = $conteo[(string)$cat['_id']] ?? 0; ?>
+                        <tr>
+                            <td data-label="Nombre" class="fw-semibold"><?= e($cat['nombre']) ?></td>
+                            <td data-label="Descripción" class="small text-secondary"><?= e(resumen((string)($cat['descripcion'] ?? ''), 80)) ?: '—' ?></td>
+                            <td data-label="Productos"><a href="<?= e(url('ver_productos.php', ['categoria' => (string)$cat['_id']])) ?>"><?= (int)$n ?></a></td>
+                            <td data-label="Acciones" class="celda-acciones">
+                                <div class="d-flex flex-wrap gap-1 justify-content-end justify-content-md-start">
+                                    <a href="<?= e(url('categoria_editar.php', ['id' => (string)$cat['_id']])) ?>" class="btn btn-warning btn-sm"><i class="bi bi-pencil" aria-hidden="true"></i> Editar</a>
+                                    <form method="post" action="<?= e(url('categoria_eliminar.php')) ?>" data-confirmar="¿Eliminar la categoría «<?= e($cat['nombre']) ?>»?">
+                                        <?= csrf_campo() ?><input type="hidden" name="id" value="<?= e((string)$cat['_id']) ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm" <?= $n ? 'disabled title="No se puede eliminar: tiene productos asociados"' : '' ?>><i class="bi bi-trash" aria-hidden="true"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (!$categorias): ?><tr><td colspan="4" class="text-center text-secondary">No hay categorías todavía.</td></tr><?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
-
-<footer class="text-center mb-4 text-muted">
-    <strong>© 2025 CERAMISHOP</strong> - Todos los derechos reservados
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
+<?php admin_fin(); ?>

@@ -1,80 +1,45 @@
 <?php
+/**
+ * POST /api/api_registro.php   {nombre, correo, password}
+ * Respuesta: {success, message, usuario, token}
+ */
+require_once __DIR__ . '/_comun.php';
+api_metodo('POST');
 
-require __DIR__ . '/../vendor/autoload.php';
-include("../conexion_mongo.php");
+$d = api_datos();
+$nombre = trim(preg_replace('/\s+/u', ' ', (string)($d['nombre'] ?? '')));
+$correo = normalizar_correo((string)($d['correo'] ?? ''));
+$password = (string)($d['password'] ?? '');
 
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
+if ($nombre === '' || $correo === '' || $password === '') {
+    api_error('validacion', 'Todos los campos son obligatorios.', 422);
+}
+if ($m = validar_nombre($nombre)) {
+    api_error('validacion', $m, 422, ['campo' => 'nombre']);
+}
+if (!filter_var($correo, FILTER_VALIDATE_EMAIL) || mb_strlen($correo) > 120) {
+    api_error('validacion', 'Escribe un correo electrónico válido.', 422, ['campo' => 'correo']);
+}
+if ($m = validar_clave_nueva($password)) {
+    api_error('validacion', $m, 422, ['campo' => 'password']);
+}
+if (usuario_por_correo($correo, ['_id' => 1])) {
+    api_error('correo_existente', 'Este correo ya está registrado. Inicia sesión.', 409, ['campo' => 'correo']);
 }
 
-$data = json_decode(file_get_contents("php://input"), true);
+$doc = [
+    'nombre'     => $nombre,
+    'correo'     => $correo,
+    'contrasena' => password_hash($password, PASSWORD_DEFAULT),
+    'rol'        => 'cliente',
+    'createdAt'  => nowUTC(),
+    'origen'     => 'app_android',
+];
+$doc['_id'] = mongo()->selectCollection('usuarios')->insertOne($doc)->getInsertedId();
 
-$nombre = trim($data["nombre"] ?? "");
-$correo = mb_strtolower(trim($data["correo"] ?? ""), "UTF-8");
-$password = $data["password"] ?? "";
-
-if($nombre === "" || $correo === "" || $password === ""){
-    echo json_encode([
-        "success" => false,
-        "message" => "Todos los campos son obligatorios."
-    ]);
-    exit;
-}
-
-if(strlen($password) < 6){
-    echo json_encode([
-        "success" => false,
-        "message" => "La contraseña debe tener mínimo 6 caracteres."
-    ]);
-    exit;
-}
-
-try{
-
-    $db = mongo();
-    $colUsuarios = $db->selectCollection("usuarios");
-
-    $existe = $colUsuarios->findOne(["correo" => $correo]);
-
-    if($existe){
-        echo json_encode([
-            "success" => false,
-            "message" => "Este correo ya está registrado."
-        ]);
-        exit;
-    }
-
-    $hash = password_hash($password, PASSWORD_DEFAULT);
-
-    $insert = $colUsuarios->insertOne([
-        "nombre" => $nombre,
-        "correo" => $correo,
-        "contraseña" => $hash,
-        "rol" => "cliente"
-    ]);
-
-    echo json_encode([
-        "success" => true,
-        "message" => "Registro exitoso.",
-        "usuario" => [
-            "id" => (string)$insert->getInsertedId(),
-            "nombre" => $nombre,
-            "correo" => $correo,
-            "rol" => "cliente"
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-
-}catch(Exception $e){
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Error del servidor.",
-        "error" => $e->getMessage()
-    ]);
-}
+json_respuesta([
+    'success' => true,
+    'message' => 'Registro exitoso.',
+    'usuario' => api_usuario_publico($doc),
+    'token'   => token_app_crear($doc['_id']),
+], 201);

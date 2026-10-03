@@ -1,73 +1,45 @@
 <?php
-session_start();
+/**
+ * Agrega un producto al carrito.
+ * Responde JSON si la petición es AJAX; si no, redirige (funciona sin JavaScript).
+ */
+require_once __DIR__ . '/includes/tienda.php';
 
-require __DIR__ . "/vendor/autoload.php";
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: tienda.php");
-    exit;
+if (!es_post()) {
+    redirigir('tienda.php');
 }
-
-$producto_id = $_POST["producto_id"] ?? null;
-$cantidad     = intval($_POST["cantidad"] ?? 1);
-
-function isValidObjectId($id) {
-    return is_string($id) && preg_match('/^[a-f\d]{24}$/i', $id);
-}
-
-if (!$producto_id || !isValidObjectId($producto_id)) {
-    header("Location: tienda.php?error=ID inválido");
-    exit;
-}
-
-$db  = mongo();
-$col = $db->selectCollection("productos");
-
-$producto = $col->findOne(
-    ["_id" => new ObjectId($producto_id)],
-    ["typeMap" => ["root" => "array", "document" => "array"]]
-);
-
-if (!$producto) {
-    header("Location: tienda.php?error=Producto no encontrado");
-    exit;
-}
-
-$stock = intval($producto["stock"] ?? 0);
-
-if ($stock <= 0) {
-    header("Location: tienda.php?error=Sin stock");
-    exit;
-}
-
-if ($cantidad > $stock) {
-    $cantidad = $stock;
-}
-
-if (!isset($_SESSION["carrito"])) {
-    $_SESSION["carrito"] = [];
-}
-
-if (isset($_SESSION["carrito"][$producto_id])) {
-    $_SESSION["carrito"][$producto_id]["cantidad"] += $cantidad;
-
-    if ($_SESSION["carrito"][$producto_id]["cantidad"] > $stock) {
-        $_SESSION["carrito"][$producto_id]["cantidad"] = $stock;
+if (!es_cliente()) {
+    if (es_ajax()) {
+        json_respuesta(['success' => false, 'codigo' => 'sesion', 'message' => 'Inicia sesión para comprar.', 'redirigir' => url('login.php')], 401);
     }
+    requerir_sesion('cliente');
+}
+csrf_verificar();
 
+$productoId = (string)($_POST['producto_id'] ?? '');
+$cantidad = (int)($_POST['cantidad'] ?? 1);
+
+if (!es_object_id($productoId)) {
+    $r = ['ok' => false, 'mensaje' => 'El producto no es válido.'];
+} elseif ($cantidad < 1 || $cantidad > 10000) {
+    $r = ['ok' => false, 'mensaje' => 'Escribe una cantidad válida (mínimo 1).'];
 } else {
-    $_SESSION["carrito"][$producto_id] = [
-        "nombre"   => $producto["nombre"],
-        "precio"   => (float)$producto["precio"],
-        "imagen"   => $producto["imagen"],
-        "cantidad" => $cantidad
-    ];
+    $r = carrito_agregar($productoId, $cantidad);
 }
 
-header("Location: tienda.php?ok=1");
-exit;
+if (es_ajax()) {
+    $p = $r['ok'] ? ($_SESSION['carrito'][$productoId] ?? null) : null;
+    json_respuesta([
+        'success' => $r['ok'],
+        'codigo'  => $r['ok'] ? 'ok' : 'sin_stock',
+        'message' => $r['mensaje'],
+        'carrito' => carrito_contar(),
+        'evento'  => $p ? ['currency' => 'COP', 'value' => $p['precio'] * $cantidad, 'items' => [['item_id' => $productoId, 'item_name' => $p['nombre'], 'price' => $p['precio'], 'quantity' => $cantidad]]] : null,
+    ], $r['ok'] ? 200 : 422);
+}
 
-?>
+flash($r['ok'] ? 'success' : 'warning', $r['mensaje']);
+if (($_POST['volver'] ?? '') === 'producto') {
+    redirigir('producto.php', ['id' => $productoId]);
+}
+redirigir('tienda.php');

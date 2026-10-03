@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Acceso Denegado</title>
-    <link rel="stylesheet" href="estilos.css">
-</head>
-<body>
-    <div class="container">
-        <h2>🚫 Acceso Denegado</h2>
-        <p>No tienes permisos para acceder a esta página.</p>
-        <a href="login.php">Volver al inicio</a>
-    </div>
-</body>
-</html>
+<?php
+/** Página mostrada cuando un usuario intenta entrar a un área que no corresponde a su rol. */
+require_once __DIR__ . '/includes/bootstrap.php';
+log_app('aviso', 'Acceso denegado', ['usuario' => usuario_actual()['id'] ?? null, 'desde' => $_SERVER['HTTP_REFERER'] ?? '']);
+mostrar_error(
+    403,
+    'Acceso denegado',
+    usuario_actual()
+        ? 'Tu cuenta no tiene permisos para entrar a esta sección.'
+        : 'Debes iniciar sesión con una cuenta autorizada para ver esta sección.'
+);

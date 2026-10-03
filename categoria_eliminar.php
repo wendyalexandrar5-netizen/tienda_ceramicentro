@@ -1,34 +1,21 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-include("verificar_acceso.php");
-verificarSesion("administrador");
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-
-function isValidObjectId($id) {
-    return is_string($id) && preg_match('/^[a-f\d]{24}$/i', $id);
+/** Elimina una categoría si no tiene productos asociados (POST con token CSRF). */
+require_once __DIR__ . '/includes/admin.php';
+requerir_sesion('administrador');
+if (!es_post()) {
+    redirigir('agregar_producto.php', ['tab' => 'categorias']);
 }
+csrf_verificar();
 
-if (!isset($_GET['id']) || !isValidObjectId($_GET['id'])) {
-    header("Location: agregar_producto.php?mensaje=ID inválido de categoría");
-    exit;
+$id = oid((string)($_POST['id'] ?? ''));
+$col = mongo()->selectCollection('categorias');
+$cat = $id ? $col->findOne(['_id' => $id]) : null;
+if (!$cat) {
+    flash('error', 'La categoría no existe.');
+} elseif (mongo()->selectCollection('productos')->countDocuments(['categoria_id' => $id]) > 0) {
+    flash('warning', 'No puedes eliminar «' . $cat['nombre'] . '» porque tiene productos asociados. Cámbialos de categoría primero.');
+} else {
+    $col->deleteOne(['_id' => $id]);
+    flash('success', 'Categoría «' . $cat['nombre'] . '» eliminada correctamente.');
 }
-
-$id = new ObjectId($_GET['id']);
-
-$db = mongo();
-$colCategorias = $db->selectCollection("categorias");
-$colProductos  = $db->selectCollection("productos");
-
-$productosUsanEstaCategoria = $colProductos->countDocuments(["categoria_id" => $id]);
-
-if ($productosUsanEstaCategoria > 0) {
-    header("Location: agregar_producto.php?mensaje=No puedes eliminar esta categoría porque está asociada a productos");
-    exit;
-}
-
-$colCategorias->deleteOne(["_id" => $id]);
-
-header("Location: agregar_producto.php?mensaje=Categoría eliminada correctamente");
-exit;
+redirigir('agregar_producto.php', ['tab' => 'categorias']);

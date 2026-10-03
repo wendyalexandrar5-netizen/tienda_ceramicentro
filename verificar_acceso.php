@@ -1,34 +1,13 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+/**
+ * Control de acceso por rol (compatibilidad con el código existente).
+ * Uso: verificarSesion('administrador') | verificarSesion('cliente') | verificarSesion(['cliente','administrador'])
+ */
+require_once __DIR__ . '/includes/bootstrap.php';
 
-function verificarSesion($roles = null) {
-    if (!isset($_SESSION['usuario'])) {
-        header("Location: login.php");
-        exit();
+if (!function_exists('verificarSesion')) {
+    function verificarSesion($roles = null): void
+    {
+        requerir_sesion($roles);
     }
-
-    if ($roles === null) return;
-
-    $rolUsuario = $_SESSION['usuario']['rol'] ?? null;
-
-    if (is_string($roles)) {
-        if ($rolUsuario !== $roles) {
-            header("Location: acceso_denegado.php");
-            exit();
-        }
-        return;
-    }
-
-    if (is_array($roles)) {
-        if (!in_array($rolUsuario, $roles, true)) {
-            header("Location: acceso_denegado.php");
-            exit();
-        }
-        return;
-    }
-
-    header("Location: acceso_denegado.php");
-    exit();
 }

@@ -1,119 +1,98 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-include("conexion_mongo.php");
-session_start();
+/** Inicio de sesión de clientes y administradores. */
+require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/seguridad.php';
 
-$db = mongo();
-$colUsuarios = $db->selectCollection('usuarios');
+// Si ya tiene sesión, enviarlo a su área
+if (es_admin()) {
+    redirigir('panel_admin.php');
+}
+if (es_cliente()) {
+    redirigir('tienda.php');
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $correoInput = trim($_POST['correo'] ?? '');
-    $correoNorm   = mb_strtolower($correoInput, 'UTF-8');
-    $contrasena   = $_POST['contraseña'] ?? '';
+$error = '';
+$correo = '';
+if (isset($_GET['volver'])) {
+    $_SESSION['volver_a'] = (string)$_GET['volver'];
+}
 
-    $usuario = $colUsuarios->findOne(
-        ['correo' => $correoNorm],
-        [
-            'projection' => [
-                '_id'        => 1,
-                'nombre'     => 1,
-                'rol'        => 1,
-                'contraseña' => 1,
-                'contrasena' => 1
-            ],
-            'typeMap' => ['root'=>'array','document'=>'array','array'=>'array'],
-            'collation' => ['locale' => 'es', 'strength' => 2] // insensible a may/min
-        ]
-    );
+if (es_post()) {
+    csrf_verificar();
+    $correo = normalizar_correo((string)($_POST['correo'] ?? ''));
+    $clave  = (string)($_POST['contraseña'] ?? ($_POST['contrasena'] ?? ''));
 
-
-    if ($usuario) {
-        $hash = '';
-        if (isset($usuario['contraseña']) && is_string($usuario['contraseña'])) {
-            $hash = $usuario['contraseña'];
-        } elseif (isset($usuario['contrasena']) && is_string($usuario['contrasena'])) {
-            $hash = $usuario['contrasena'];
-        }
-
-        if ($hash !== '' && password_verify($contrasena, $hash)) {
-            $_SESSION['usuario'] = [
-                'id'     => (string)$usuario['_id'],
-                'nombre' => $usuario['nombre'] ?? '',
-                'correo' => $correoNorm,
-                'rol'    => $usuario['rol'] ?? ''
-            ];
-
-            if (($_SESSION['usuario']['rol'] ?? '') === 'administrador') {
-                header("Location: panel_admin.php"); exit;
-            }
-            if (($_SESSION['usuario']['rol'] ?? '') === 'cliente') {
-                header("Location: tienda.php"); exit;
-            }
-
-            $error = "Rol no reconocido.";
-        } else {
-            $error = "Contraseña incorrecta.";
-        }
+    if ($correo === '' || $clave === '') {
+        $error = 'Escribe tu correo y tu contraseña.';
+    } elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        $error = 'El correo no tiene un formato válido.';
+    } elseif ($min = login_bloqueado($correo)) {
+        $error = 'Demasiados intentos fallidos. Por seguridad, espera ' . $min . ' minuto' . ($min === 1 ? '' : 's') . ' e intenta de nuevo.';
     } else {
-        $error = "Usuario no encontrado.";
+        $usuario = usuario_por_correo($correo, ['_id' => 1, 'nombre' => 1, 'correo' => 1, 'rol' => 1, 'contraseña' => 1, 'contrasena' => 1, 'activo' => 1]);
+        if ($usuario && verificar_clave_usuario($usuario, $clave)) {
+            if (($usuario['activo'] ?? true) === false) {
+                $error = 'Tu cuenta está desactivada. Comunícate con CERAMICENTRO.';
+            } elseif (!in_array($usuario['rol'] ?? '', ['administrador', 'cliente'], true)) {
+                $error = 'Tu cuenta no tiene un rol válido. Comunícate con CERAMICENTRO.';
+                log_app('aviso', 'Usuario con rol no reconocido', ['id' => (string)$usuario['_id']]);
+            } else {
+                login_limpiar_intentos($correo);
+                $volver = $_SESSION['volver_a'] ?? '';
+                sesion_login($usuario);
+                if ($usuario['rol'] === 'administrador') {
+                    redirigir('panel_admin.php');
+                }
+                flash('success', '¡Hola, ' . explode(' ', trim((string)$usuario['nombre']))[0] . '! Qué bueno verte.');
+                header('Location: ' . destino_seguro($volver, 'tienda.php'), true, 303);
+                exit;
+            }
+        } else {
+            login_registrar_fallo($correo);
+            // Mensaje genérico: no revela si el correo existe
+            $error = 'Correo o contraseña incorrectos.';
+        }
     }
 }
+
+layout_inicio([
+    'titulo'      => 'Iniciar sesión',
+    'descripcion' => 'Inicia sesión en CERAMISHOP para comprar en línea, revisar tus pedidos y descargar tus comprobantes.',
+    'canonical'   => 'login.php',
+    'activo'      => 'login',
+]);
 ?>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>✨ Iniciar Sesión | CERAMICENTRO ✨</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: linear-gradient(to right, #ffe6e6, #ffffff); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .login-container { max-width: 420px; margin: 60px auto; background-color: #fff; border-radius: 18px; box-shadow: 0 12px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .login-header { background: linear-gradient(to right, #c62828, #b71c1c); color: white; padding: 25px; text-align: center; }
-        .logo { width: 80px; height: auto; margin-bottom: 10px; border-radius: 10px; }
-        .login-header h2 { margin: 0; font-weight: bold; font-size: 1.8rem; }
-        .form-label { font-weight: 600; }
-        .btn-red { background-color: #c62828; border: none; font-weight: bold; transition: background-color 0.3s ease; }
-        .btn-red:hover { background-color: #a71515; }
-        .error-message { color: #b00020; background-color: #ffebee; padding: 10px; border-radius: 10px; margin-top: 10px; text-align: center; font-weight: 500; }
-        .footer-links { font-size: 0.9rem; text-align: center; margin-top: 20px; }
-        .footer-links a { color: #c62828; text-decoration: none; }
-        .footer-links a:hover { text-decoration: underline; }
-        footer { font-size: 0.9rem; color: #888; }
-    </style>
-</head>
-<body>
-
-<div class="login-container">
-    <div class="login-header">
-        <img src="imagenes/logo.jpeg" alt="Logo CERAMICENTRO" class="logo">
-        <h2>Bienvenido a CERAMICENTRO</h2>
+<section class="container">
+    <div class="cs-tarjeta-auth">
+        <div class="auth-header">
+            <img src="<?= e(url('imagenes/logo.jpeg')) ?>" alt="Logo de CERAMICENTRO" width="80" height="80" onerror="this.remove()">
+            <h1>Bienvenido a CERAMICENTRO</h1>
+            <p class="mb-0 small opacity-75">Inicia sesión para continuar</p>
+        </div>
+        <form method="post" class="p-4" data-validar novalidate>
+            <?= csrf_campo() ?>
+            <?php if ($error): ?>
+            <div class="alert alert-danger d-flex gap-2" role="alert"><i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i><div><?= e($error) ?></div></div>
+            <?php endif; ?>
+            <div class="mb-3">
+                <label class="form-label" for="correo">Correo electrónico</label>
+                <input type="email" id="correo" name="correo" class="form-control" placeholder="usuario@correo.com" required maxlength="120" autocomplete="email" value="<?= e($correo) ?>" <?= $correo === '' ? 'autofocus' : '' ?>>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="clave">Contraseña</label>
+                <div class="campo-clave">
+                    <input type="password" id="clave" name="contraseña" class="form-control" placeholder="••••••••" required autocomplete="current-password" <?= $correo !== '' ? 'autofocus' : '' ?>>
+                    <button type="button" class="btn-ver-clave" aria-label="Mostrar contraseña" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                </div>
+            </div>
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-cs btn-lg" data-cargando="Ingresando…"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Ingresar</button>
+            </div>
+            <div class="text-center small">
+                <p class="mb-1">¿No tienes cuenta? <a href="<?= e(url('registro.php')) ?>">Regístrate aquí</a></p>
+                <p class="mb-0"><a href="<?= e(url('index.php')) ?>">Volver al inicio</a></p>
+            </div>
+        </form>
     </div>
-
-    <form method="post" class="p-4">
-        <?php if (isset($error)) echo "<div class='error-message'>".htmlspecialchars($error)."</div>"; ?>
-
-        <div class="mb-3">
-            <label class="form-label">Correo electrónico:</label>
-            <input type="email" name="correo" class="form-control" placeholder="usuario@correo.com" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Contraseña:</label>
-            <input type="password" name="contraseña" class="form-control" placeholder="••••••••" required>
-        </div>
-        <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-red text-white">🔐 Ingresar</button>
-        </div>
-
-        <div class="footer-links">
-            <p>¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a></p>
-            <p><a href="index.html">Volver al inicio</a></p>
-        </div>
-    </form>
-</div>
-<hr>
-<br>
-<center><b><footer>© 2025 <strong>CERAMISHOP</strong> - Todos los derechos reservados</footer></b></center>
-<br>
-</body>
-</html>
+</section>
+<?php layout_fin(); ?>

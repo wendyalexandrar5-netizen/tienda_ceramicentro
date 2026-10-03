@@ -1,148 +1,88 @@
 <?php
-session_start();
+/** Detalle de un pedido del cliente (solo puede ver sus propios pedidos). */
+require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/tienda.php';
+require_once __DIR__ . '/includes/pedidos.php';
+requerir_sesion('cliente');
 
-require __DIR__ . "/vendor/autoload.php";
-include("verificar_acceso.php");
-verificarSesion("cliente");
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-
-if (!isset($_GET["id"]) || !preg_match('/^[a-f\d]{24}$/i', $_GET["id"])) {
-    die("ID de pedido inválido.");
-}
-
-$pedidoId = $_GET["id"];
-
-$db = mongo();
-$colPedidos       = $db->selectCollection("pedidos");
-$colPedidoDetalle = $db->selectCollection("pedido_detalle");
-$colProductos     = $db->selectCollection("productos");
-
-$pedido = $colPedidos->findOne(
-    ["_id" => new ObjectId($pedidoId)],
-    ["typeMap" => ["root" => "array", "document" => "array"]]
-);
-
+$pedido = pedido_de_usuario((string)($_GET['id'] ?? ''), usuario_actual()['id']);
 if (!$pedido) {
-    die("Pedido no encontrado.");
+    no_encontrado('No encontramos ese pedido en tu cuenta. Revisa la lista de tus pedidos.');
 }
+$id = (string)$pedido['_id'];
+$estado = pedido_estado($pedido);
+$detalles = pedido_detalles($pedido);
+$total = (float)($pedido['total'] ?? 0);
 
-$fecha = $pedido["fecha"]->toDateTime()->format("Y-m-d H:i");
-
-$estado = "pagado";
-
-$detallesCursor = $colPedidoDetalle->find(
-    ["pedido_id" => new ObjectId($pedidoId)],
-    ["typeMap" => ["root" => "array", "document" => "array"]]
-);
-$detalles = iterator_to_array($detallesCursor, false);
-
+layout_inicio(['titulo' => 'Pedido ' . pedido_numero($pedido), 'noindex' => true, 'activo' => 'pedidos',
+    'migas' => [['nombre' => 'Mis pedidos', 'url' => 'mis_pedidos.php'], ['nombre' => pedido_numero($pedido)]]]);
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Detalles del Pedido</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<section class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="cs-panel">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+                    <div>
+                        <h1 class="h3 mb-1">Pedido <?= e(pedido_numero($pedido)) ?></h1>
+                        <p class="text-secondary mb-0"><?= e(fecha_local($pedido['fecha'] ?? null)) ?></p>
+                    </div>
+                    <div><?= estado_badge($estado) ?></div>
+                </div>
+                <p class="mb-4"><?= e(estado_explicacion($estado)) ?></p>
 
-    <style>
-        body { background-color:#f5f5f5; }
-        .pedido-box {
-            background:white; padding:25px; border-radius:12px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom:20px;
-        }
-        .estado {
-            padding:6px 12px; border-radius:6px;
-            color:white; font-weight:bold;
-        }
-        .pagado { background:#4caf50; }
-        .producto-img {
-            width:80px; height:80px; object-fit:cover; border-radius:10px;
-        }
-        .btn-op {
-            margin-right: 8px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container mt-4">
-
-    <h2 class="mb-4">📄 Detalle del Pedido</h2>
-
-    <div class="pedido-box">
-        <p><strong>ID Pedido:</strong> <?= htmlspecialchars($pedidoId) ?></p>
-        <p><strong>Fecha:</strong> <?= htmlspecialchars($fecha) ?></p>
-        <p><strong>Total:</strong> $<?= number_format($pedido["total"], 2) ?></p>
-
-        <p><strong>Estado:</strong>
-            <span class="estado pagado">Pagado</span>
-        </p>
-
-        <a href="repetir_pedido.php?id=<?= $pedidoId ?>" class="btn btn-primary btn-op">
-            🔁 Repetir pedido
-        </a>
-
-        <a href="descargar_pedido.php?id=<?= $pedidoId ?>" class="btn btn-danger btn-op" target="_blank">
-            📄 Descargar PDF
-        </a>
+                <h2 class="h6 fw-bold">Productos del pedido</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle tabla-apilable">
+                        <thead><tr><th scope="col">Producto</th><th scope="col" class="text-center">Cantidad</th><th scope="col" class="text-end">Precio unitario</th><th scope="col" class="text-end">Subtotal</th></tr></thead>
+                        <tbody>
+                        <?php foreach ($detalles as $d): ?>
+                            <tr>
+                                <td data-label="Producto"><div class="d-flex align-items-center gap-2"><?= imagen_html((string)($d['imagen'] ?? ''), '', ['class' => 'tabla-img', 'width' => 56, 'height' => 56]) ?><span><?= e($d['nombre_producto']) ?></span></div></td>
+                                <td data-label="Cantidad" class="text-md-center"><?= (int)$d['cantidad'] ?></td>
+                                <td data-label="Precio unitario" class="text-md-end"><?= e(dinero($d['precio_unitario'])) ?></td>
+                                <td data-label="Subtotal" class="text-md-end"><?= e(dinero($d['subtotal'])) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="3" class="text-end d-none d-md-table-cell">Base (sin IVA)</td><td class="text-end" data-label="Base (sin IVA)"><?= e(dinero($total / 1.19)) ?></td></tr>
+                            <tr><td colspan="3" class="text-end d-none d-md-table-cell">IVA 19 %</td><td class="text-end" data-label="IVA 19 %"><?= e(dinero($total - $total / 1.19)) ?></td></tr>
+                            <tr class="fw-bold"><td colspan="3" class="text-end d-none d-md-table-cell">Total</td><td class="text-end" data-label="Total"><?= e(dinero($total)) ?></td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <aside class="cs-panel mb-4">
+                <h2 class="cs-panel-titulo">Acciones</h2>
+                <div class="d-grid gap-2">
+                    <?php if (in_array($estado, [ESTADO_PENDIENTE, ESTADO_RECHAZADO], true)): ?>
+                    <a href="<?= e(url('pago_pse.php', ['id' => $id])) ?>" class="btn btn-cs"><i class="bi bi-bank" aria-hidden="true"></i> Completar pago</a>
+                    <?php endif; ?>
+                    <a href="<?= e(url('generar_comprobante.php', ['id' => $id])) ?>" class="btn btn-outline-cs" target="_blank" rel="noopener" data-descarga="pdf"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Comprobante PDF</a>
+                    <a href="<?= e(url('descargar_pedido.php', ['id' => $id])) ?>" class="btn btn-outline-secondary" data-descarga="pdf"><i class="bi bi-download" aria-hidden="true"></i> Descargar detalle (PDF)</a>
+                    <form method="post" action="<?= e(url('repetir_pedido.php')) ?>" class="d-grid">
+                        <?= csrf_campo() ?><input type="hidden" name="id" value="<?= e($id) ?>">
+                        <button type="submit" class="btn btn-outline-secondary" data-cargando="Agregando…"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Repetir pedido</button>
+                    </form>
+                    <a href="<?= e(url('mis_pedidos.php')) ?>" class="btn btn-link">⬅ Volver a mis pedidos</a>
+                </div>
+            </aside>
+            <aside class="cs-panel">
+                <h2 class="cs-panel-titulo">Pago y seguimiento</h2>
+                <p class="small mb-1"><strong>Método:</strong> <?= e($pedido['metodo_pago'] ?? 'PSE (simulado)') ?></p>
+                <?php if (!empty($pedido['pago']['referencia'])): ?><p class="small mb-1"><strong>Referencia:</strong> <?= e($pedido['pago']['referencia']) ?></p><?php endif; ?>
+                <?php if (!empty($pedido['pago']['banco'])): ?><p class="small mb-3"><strong>Banco (simulado):</strong> <?= e($pedido['pago']['banco']) ?></p><?php endif; ?>
+                <?php if (!empty($pedido['historial_estados'])): ?>
+                <ul class="linea-tiempo mt-3">
+                    <?php foreach ($pedido['historial_estados'] as $h): ?>
+                    <li><strong><?= e($h['estado'] ?? '') ?></strong><br><span class="text-secondary"><?= e(fecha_local($h['fecha'] ?? null)) ?></span></li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php endif; ?>
+            </aside>
+        </div>
     </div>
-
-    <h4 class="mb-3">🛒 Productos del Pedido</h4>
-
-    <div class="table-responsive">
-        <table class="table table-bordered shadow-sm">
-            <thead class="table-light">
-                <tr>
-                    <th>Imagen</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-
-                <?php foreach ($detalles as $item):
-
-                    $prod = $colProductos->findOne(
-                        ["_id" => new ObjectId($item["producto_id"])],
-                        ["typeMap" => ["root" => "array", "document" => "array"]]
-                    );
-
-                    $img = $prod["imagen"] ?? "";
-                ?>
-
-                <tr>
-                    <td>
-                        <?php if ($img): ?>
-                            <img src="<?= htmlspecialchars($img) ?>" class="producto-img">
-                        <?php else: ?>
-                            <span class="text-muted">Sin imagen</span>
-                        <?php endif; ?>
-                    </td>
-
-                    <td><?= htmlspecialchars($item["nombre_producto"]) ?></td>
-                    <td><?= $item["cantidad"] ?></td>
-                    <td>$<?= number_format($item["precio_unitario"], 2) ?></td>
-                    <td>$<?= number_format($item["subtotal"], 2) ?></td>
-                </tr>
-
-                <?php endforeach; ?>
-
-            </tbody>
-        </table>
-    </div>
-
-    <a href="mis_pedidos.php" class="btn btn-dark mt-3">⬅ Volver</a>
-
-</div>
-
-<footer class="text-center mt-4 mb-4">
-    © 2025 <strong>CERAMISHOP</strong> - Todos los derechos reservados
-</footer>
-
-</body>
-</html>
+</section>
+<?php layout_fin(); ?>

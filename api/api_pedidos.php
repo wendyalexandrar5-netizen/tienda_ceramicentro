@@ -1,142 +1,64 @@
 <?php
+/**
+ * POST /api/api_pedidos.php  (requiere token)   {usuario_id? (solo apps antiguas)}
+ * Respuesta: {success, pedidos:[{id, numero, fecha, estado, total, comprobante_url, productos:[...]}]}
+ * Solo devuelve pedidos del usuario autenticado.
+ */
+require_once __DIR__ . '/_comun.php';
+require_once __DIR__ . '/../includes/pedidos.php';
+api_metodo('POST', 'GET');
 
-require __DIR__ . '/../vendor/autoload.php';
-include("../conexion_mongo.php");
+$d = api_datos();
+$usuario = api_usuario((string)($d['usuario_id'] ?? ''));
+$uid = $usuario['_id'];
 
-use MongoDB\BSON\ObjectId;
+$pedidos = iterator_to_array(mongo()->selectCollection('pedidos')->find(['usuario_id' => $uid], ['sort' => ['fecha' => -1], 'limit' => 100]), false);
+$detalles = detalles_de_pedidos(array_map(fn($p) => $p['_id'], $pedidos));
 
-date_default_timezone_set("America/Bogota");
-
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
+// Imágenes actuales de los productos en una sola consulta
+$ids = [];
+foreach ($detalles as $lineas) {
+    foreach ($lineas as $l) {
+        if (!empty($l['producto_id'])) {
+            $ids[(string)$l['producto_id']] = $l['producto_id'];
+        }
+    }
+}
+$imagenes = [];
+if ($ids) {
+    foreach (mongo()->selectCollection('productos')->find(['_id' => ['$in' => array_values($ids)]], ['projection' => ['imagen' => 1]]) as $pr) {
+        $imagenes[(string)$pr['_id']] = (string)($pr['imagen'] ?? '');
+    }
 }
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-$usuarioId = $data["usuario_id"] ?? "";
-
-if (!preg_match('/^[a-f\d]{24}$/i', $usuarioId)) {
-
-    echo json_encode([
-        "success" => false,
-        "message" => "ID inválido"
-    ]);
-
-    exit;
-}
-
-try {
-
-    $db = mongo();
-
-    $colPedidos = $db->selectCollection("pedidos");
-    $colDetalle = $db->selectCollection("pedido_detalle");
-    $colProductos = $db->selectCollection("productos");
-
-    $pedidosCursor = $colPedidos->find(
-        [
-            "usuario_id" => new ObjectId($usuarioId)
-        ],
-        [
-            "sort" => ["fecha" => -1]
-        ]
-    );
-
-    $resultado = [];
-
-    foreach($pedidosCursor as $pedido){
-
-        $pedidoId = (string)$pedido["_id"];
-
-        $detallesCursor = $colDetalle->find([
-            "pedido_id" => $pedido["_id"]
-        ]);
-
-        $productos = [];
-
-        foreach($detallesCursor as $detalle){
-
-            $imagen = "";
-
-            if(isset($detalle["producto_id"])){
-
-                $prod = $colProductos->findOne([
-                    "_id" => $detalle["producto_id"]
-                ]);
-
-                if($prod && !empty($prod["imagen"])){
-
-                    $imagen =
-                    "http://172.20.10.4/tiendaonline_mongodb/"
-                    . ltrim($prod["imagen"], "/");
-                }
-            }
-
-            $productos[] = [
-
-                "producto_id" =>
-                isset($detalle["producto_id"])
-                    ? (string)$detalle["producto_id"]
-                    : "",
-
-                "nombre" =>
-                $detalle["nombre_producto"] ?? "",
-
-                "cantidad" =>
-                (int)($detalle["cantidad"] ?? 0),
-
-                "precio" =>
-                (float)($detalle["precio_unitario"] ?? 0),
-
-                "subtotal" =>
-                (float)($detalle["subtotal"] ?? 0),
-
-                "imagen" =>
-                $imagen
-            ];
-        }
-
-        $fecha = "";
-
-        if(isset($pedido["fecha"])){
-            $fechaObj = $pedido["fecha"]->toDateTime();
-            $fechaObj->setTimezone(new DateTimeZone("America/Bogota"));
-            $fecha = $fechaObj->format("Y-m-d H:i");
-        }
-
-        $resultado[] = [
-
-            "id" => $pedidoId,
-
-            "fecha" => $fecha,
-
-            "estado" =>
-            $pedido["estado"] ?? "Pendiente",
-
-            "total" =>
-            (float)($pedido["total"] ?? 0),
-
-            "productos" =>
-            $productos
+$resultado = [];
+foreach ($pedidos as $p) {
+    $productos = [];
+    foreach ($detalles[(string)$p['_id']] ?? [] as $l) {
+        $pid = isset($l['producto_id']) ? (string)$l['producto_id'] : '';
+        $cantidad = (int)($l['cantidad'] ?? 0);
+        $precio = (float)($l['precio_unitario'] ?? 0);
+        $productos[] = [
+            'producto_id' => $pid,
+            'nombre'      => (string)($l['nombre_producto'] ?? ''),
+            'cantidad'    => $cantidad,
+            'precio'      => $precio,
+            'subtotal'    => (float)($l['subtotal'] ?? $precio * $cantidad),
+            'imagen'      => api_url_imagen((string)($l['imagen'] ?? ($imagenes[$pid] ?? ''))),
         ];
     }
-
-    echo json_encode([
-        "success" => true,
-        "pedidos" => $resultado
-    ], JSON_UNESCAPED_UNICODE);
-
-} catch(Exception $e){
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Error del servidor",
-        "error" => $e->getMessage()
-    ]);
+    $resultado[] = [
+        'id'              => (string)$p['_id'],
+        'numero'          => pedido_numero($p),
+        'fecha'           => fecha_local($p['fecha'] ?? null, 'Y-m-d H:i'),
+        'estado'          => pedido_estado($p),
+        'explicacion'     => estado_explicacion(pedido_estado($p)),
+        'total'           => (float)($p['total'] ?? 0),
+        'referencia'      => (string)($p['pago']['referencia'] ?? ''),
+        'origen'          => (string)($p['origen'] ?? 'web'),
+        'comprobante_url' => api_url_comprobante((string)$p['_id'], (string)$uid),
+        'productos'       => $productos,
+    ];
 }
+
+json_respuesta(['success' => true, 'pedidos' => $resultado]);

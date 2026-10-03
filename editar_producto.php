@@ -1,195 +1,160 @@
-<?php 
-require __DIR__ . '/vendor/autoload.php';
-include("verificar_acceso.php");
-verificarSesion('administrador');
-include("conexion_mongo.php");
-
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
-
-function isValidObjectId($id){
-    return is_string($id) && preg_match('/^[a-f\d]{24}$/i', $id);
-}
+<?php
+/** Editar un producto (registra cada cambio en el historial). */
+require_once __DIR__ . '/includes/admin.php';
+requerir_sesion('administrador');
 
 $db = mongo();
 $colProductos  = $db->selectCollection('productos');
 $colCategorias = $db->selectCollection('categorias');
-$colHist       = $db->selectCollection('historial_productos');
 
-if (!isset($_GET['id']) || !isValidObjectId($_GET['id'])) {
-    die("ID inválido.");
-}
-
-$id = new ObjectId($_GET['id']);
-$producto = $colProductos->findOne(['_id' => $id]);
+$producto = producto_por_id((string)($_GET['id'] ?? ''));
 if (!$producto) {
-    die("Producto no encontrado.");
+    flash('error', 'El producto no existe o ya fue eliminado.');
+    redirigir('ver_productos.php');
 }
+$id = $producto['_id'];
+$categorias = iterator_to_array($colCategorias->find([], ['sort' => ['nombre' => 1]]), false);
+$mapaCat = [];
+foreach ($categorias as $c) {
+    $mapaCat[(string)$c['_id']] = (string)$c['nombre'];
+}
+$errores = [];
+$v = [
+    'nombre' => (string)($producto['nombre'] ?? ''), 'descripcion' => (string)($producto['descripcion'] ?? ''),
+    'precio' => (string)($producto['precio'] ?? ''), 'stock' => (string)($producto['stock'] ?? '0'),
+    'categoria' => isset($producto['categoria_id']) ? (string)$producto['categoria_id'] : '',
+];
 
-$catCursor = $colCategorias->find([], ["sort" => ["nombre" => 1]]);
-$categorias = iterator_to_array($catCursor, false);
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-    $nombre      = trim($_POST["nombre"] ?? '');
-    $descripcion = trim($_POST["descripcion"] ?? '');
-    $precio      = $_POST["precio"] ?? null;
-    $stock       = $_POST["stock"] ?? null;
-    $categoriaId = $_POST["categoria"] ?? '';
-
-    $imagen_ruta = $producto['imagen'] ?? '';
-
-    $errores = [];
-
-    if ($nombre === '') $errores[] = "El nombre es obligatorio.";
-    if ($descripcion === '') $errores[] = "La descripción es obligatoria.";
-    if (!is_numeric($precio) || $precio <= 0) $errores[] = "Precio inválido.";
-    if (!ctype_digit((string)$stock) || $stock < 0) $errores[] = "Stock inválido.";
-    if (!isValidObjectId($categoriaId)) $errores[] = "Categoría inválida.";
-
-    if (!empty($_FILES["imagen"]["name"])) {
-
-        $ext = strtolower(pathinfo($_FILES["imagen"]["name"], PATHINFO_EXTENSION));
-        $permitidas = ["jpg", "jpeg", "png", "gif", "webp"];
-
-        if (!in_array($ext, $permitidas)) {
-            $errores[] = "Formato de imagen no permitido.";
+if (es_post()) {
+    csrf_verificar();
+    foreach ($v as $k => $_) {
+        $v[$k] = trim((string)($_POST[$k] ?? ''));
+    }
+    $precio = str_replace(',', '.', $v['precio']);
+    if (mb_strlen($v['nombre']) < 2 || mb_strlen($v['nombre']) > 120) {
+        $errores['nombre'] = 'El nombre es obligatorio (2 a 120 caracteres).';
+    }
+    if (mb_strlen($v['descripcion']) < 5 || mb_strlen($v['descripcion']) > 2000) {
+        $errores['descripcion'] = 'La descripción es obligatoria (5 a 2000 caracteres).';
+    }
+    if (!is_numeric($precio) || (float)$precio <= 0) {
+        $errores['precio'] = 'El precio debe ser un número mayor que 0.';
+    }
+    if (!ctype_digit($v['stock'])) {
+        $errores['stock'] = 'El stock debe ser un número entero igual o mayor que 0.';
+    }
+    if (!isset($mapaCat[$v['categoria']])) {
+        $errores['categoria'] = 'Selecciona una categoría válida.';
+    }
+    $imagen = (string)($producto['imagen'] ?? '');
+    if (!$errores && !empty($_FILES['imagen']['name'])) {
+        $img = guardar_imagen_subida($_FILES['imagen']);
+        if ($img['ok']) {
+            $imagen = $img['ruta'];
         } else {
-            $nuevoNombre = time() . "_" . uniqid() . "." . $ext;
-            $rutaNueva = "imagenes/" . $nuevoNombre;
-
-            if (move_uploaded_file($_FILES["imagen"]["tmp_name"], $rutaNueva)) {
-                $imagen_ruta = $rutaNueva;
-            } else {
-                $errores[] = "Error subiendo la imagen.";
-            }
+            $errores['imagen'] = $img['error'];
         }
     }
 
-    if (empty($errores)) {
-
+    if (!$errores) {
         $cambios = [];
-
-        if ($producto["nombre"] !== $nombre)
-            $cambios[] = "Nombre: {$producto['nombre']} → $nombre";
-
-        if ((string)$producto["descripcion"] !== $descripcion)
-            $cambios[] = "Descripción actualizada";
-
-        if ((float)$producto["precio"] != (float)$precio)
-            $cambios[] = "Precio: {$producto['precio']} → $precio";
-
-        if ((int)$producto["stock"] != (int)$stock)
-            $cambios[] = "Stock: {$producto['stock']} → $stock";
-
-        if ((string)$producto["categoria_id"] !== $categoriaId) {
-            $catAnt = $colCategorias->findOne(['_id' => $producto['categoria_id']])['nombre'] ?? 'N/A';
-            $catNueva = $colCategorias->findOne(['_id' => new ObjectId($categoriaId)])['nombre'] ?? 'N/A';
-            $cambios[] = "Categoría: $catAnt → $catNueva";
+        $catAnt = $mapaCat[(string)($producto['categoria_id'] ?? '')] ?? 'Sin categoría';
+        $catNueva = $mapaCat[$v['categoria']];
+        if (($producto['nombre'] ?? '') !== $v['nombre']) {
+            $cambios[] = 'Nombre: ' . ($producto['nombre'] ?? '') . ' → ' . $v['nombre'];
+        }
+        if ((string)($producto['descripcion'] ?? '') !== $v['descripcion']) {
+            $cambios[] = 'Descripción actualizada';
+        }
+        if (abs((float)($producto['precio'] ?? 0) - (float)$precio) > 0.004) {
+            $cambios[] = 'Precio: ' . dinero($producto['precio'] ?? 0) . ' → ' . dinero($precio);
+        }
+        if ((int)($producto['stock'] ?? 0) !== (int)$v['stock']) {
+            $cambios[] = 'Stock: ' . (int)($producto['stock'] ?? 0) . ' → ' . (int)$v['stock'];
+        }
+        if ((string)($producto['categoria_id'] ?? '') !== $v['categoria']) {
+            $cambios[] = 'Categoría: ' . $catAnt . ' → ' . $catNueva;
+        }
+        if ((string)($producto['imagen'] ?? '') !== $imagen) {
+            $cambios[] = 'Imagen actualizada';
         }
 
-        if ($producto["imagen"] !== $imagen_ruta)
-            $cambios[] = "Imagen actualizada";
-
-        if (empty($cambios)) {
-            $error = "No se detectaron cambios.";
-        } else {
-
-            $colProductos->updateOne(
-                ['_id' => $id],
-                ['$set' => [
-                    "nombre"        => $nombre,
-                    "descripcion"   => $descripcion,
-                    "precio"        => (float)$precio,
-                    "stock"         => (int)$stock,
-                    "categoria_id"  => new ObjectId($categoriaId),
-                    "imagen"        => $imagen_ruta,
-                    "actualizado_en"=> new UTCDateTime()
-                ]]
-            );
-
-            $adminId = $_SESSION["usuario"]["id"] ?? null;
-            $adminOid = (isValidObjectId($adminId)) ? new ObjectId($adminId) : null;
-            $nombre_admin = $_SESSION["usuario"]["nombre"] ?? '';
-            $producto_nom = $producto["nombre"] ?? $nombre;
-
-            $colHist->insertOne([
-                "id_admin"        => $adminOid,
-                "nombre_admin"    => $nombre_admin,
-                "id_producto"     => $id,
-                "producto_nombre" => $producto_nom,
-                "accion"          => "edito",
-                "cambios"         => $cambios,
-                "fecha"           => new UTCDateTime()
-            ]);
-
-            header("Location: agregar_producto.php?mensaje=Producto actualizado");
-            exit;
+        if (!$cambios) {
+            flash('info', 'No se detectaron cambios.');
+            redirigir('editar_producto.php', ['id' => (string)$id]);
         }
-    } else {
-        $error = implode("<br>", $errores);
+        $colProductos->updateOne(['_id' => $id], ['$set' => [
+            'nombre' => $v['nombre'], 'descripcion' => $v['descripcion'], 'precio' => round((float)$precio, 2),
+            'stock' => (int)$v['stock'], 'categoria_id' => oid($v['categoria']), 'imagen' => $imagen, 'actualizado_en' => nowUTC(),
+        ]]);
+        registrar_historial('edito', ['_id' => $id, 'nombre' => $v['nombre']], $cambios,
+            $catAnt !== $catNueva ? $catAnt : null, $catAnt !== $catNueva ? $catNueva : null);
+        flash('success', 'Producto «' . $v['nombre'] . '» actualizado (' . count($cambios) . ' cambio' . (count($cambios) === 1 ? '' : 's') . ').');
+        redirigir('ver_productos.php');
     }
 }
+
+admin_inicio('Editar producto', 'productos', ['acciones' => '<a class="btn btn-outline-secondary" href="' . e(url('producto.php', ['id' => (string)$id])) . '" target="_blank" rel="noopener"><i class="bi bi-eye" aria-hidden="true"></i> Ver en la tienda</a>']);
+$inv = fn($c) => isset($errores[$c]) ? ' is-invalid" aria-invalid="true" aria-describedby="err-' . $c : '';
+$err = fn($c) => isset($errores[$c]) ? '<div class="invalid-feedback d-block" id="err-' . $c . '">' . e($errores[$c]) . '</div>' : '';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Editar Producto</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-<div class="container mt-4">
-
-    <h2>Editar Producto</h2>
-
-    <?php if (isset($error)): ?>
-        <div class="alert alert-danger"><?= $error ?></div>
-    <?php endif; ?>
-
-    <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
-
-        <label class="form-label mt-2">Nombre:</label>
-        <input type="text" name="nombre" class="form-control"
-               value="<?= htmlspecialchars($producto['nombre']) ?>" required>
-
-        <label class="form-label mt-2">Descripción:</label>
-        <textarea name="descripcion" class="form-control" rows="3"><?= htmlspecialchars($producto['descripcion']) ?></textarea>
-
-        <label class="form-label mt-2">Precio:</label>
-        <input type="number" step="0.01" name="precio" class="form-control"
-               value="<?= htmlspecialchars($producto['precio']) ?>" required>
-
-        <label class="form-label mt-2">Stock:</label>
-        <input type="number" name="stock" class="form-control"
-               value="<?= htmlspecialchars($producto['stock']) ?>" required>
-
-        <label class="form-label mt-2">Categoría:</label>
-        <select name="categoria" class="form-select" required>
-            <?php foreach ($categorias as $cat): ?>
-                <option value="<?= $cat['_id'] ?>"
-                    <?= ((string)$producto["categoria_id"] === (string)$cat["_id"]) ? "selected" : "" ?>>
-                    <?= htmlspecialchars($cat["nombre"]) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-
-        <label class="form-label mt-3">Imagen Actual:</label><br>
-        <img src="<?= htmlspecialchars($producto['imagen']) ?>" width="180" class="mb-3 rounded">
-
-        <label class="form-label">¿Subir nueva imagen?</label>
-        <input type="file" name="imagen" class="form-control">
-
-        <button class="btn btn-primary mt-3">Guardar Cambios</button>
-        <a href="agregar_producto.php" class="btn btn-danger mt-3">Cancelar</a>
-    </form>
-
+<?php if ($errores): ?><div class="alert alert-danger" role="alert">No se guardaron los cambios. Revisa los campos marcados.</div><?php endif; ?>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <form method="post" enctype="multipart/form-data" class="cs-panel" data-validar novalidate>
+            <?= csrf_campo() ?>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control<?= $inv('nombre') ?>" required minlength="2" maxlength="120" value="<?= e($v['nombre']) ?>">
+                    <?= $err('nombre') ?>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" class="form-control<?= $inv('descripcion') ?>" rows="4" required minlength="5" maxlength="2000"><?= e($v['descripcion']) ?></textarea>
+                    <?= $err('descripcion') ?>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="form-label" for="precio">Precio (COP)</label>
+                    <input type="number" step="0.01" min="0.01" id="precio" name="precio" class="form-control<?= $inv('precio') ?>" required value="<?= e($v['precio']) ?>">
+                    <?= $err('precio') ?>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="stock">Stock</label>
+                    <input type="number" min="0" step="1" id="stock" name="stock" class="form-control<?= $inv('stock') ?>" required value="<?= e($v['stock']) ?>">
+                    <?= $err('stock') ?>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label" for="categoria">Categoría</label>
+                    <select id="categoria" name="categoria" class="form-select<?= $inv('categoria') ?>" required>
+                        <?php if (!isset($mapaCat[$v['categoria']])): ?><option value="">Selecciona una categoría</option><?php endif; ?>
+                        <?php foreach ($categorias as $cat): ?>
+                        <option value="<?= e((string)$cat['_id']) ?>" <?= $v['categoria'] === (string)$cat['_id'] ? 'selected' : '' ?>><?= e($cat['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?= $err('categoria') ?>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="imagen">Reemplazar imagen <span class="fw-normal text-secondary">(opcional)</span></label>
+                    <input type="file" id="imagen" name="imagen" class="form-control<?= $inv('imagen') ?>" accept="image/jpeg,image/png,image/webp,image/gif">
+                    <?= $err('imagen') ?>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="btn btn-cs" data-cargando="Guardando…"><i class="bi bi-save" aria-hidden="true"></i> Guardar cambios</button>
+                <a href="<?= e(url('ver_productos.php')) ?>" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-4">
+        <div class="cs-panel">
+            <p class="form-label">Imagen actual</p>
+            <div class="producto-detalle-img mb-3"><?= imagen_html((string)($producto['imagen'] ?? ''), 'Imagen actual de ' . ($producto['nombre'] ?? 'producto'), ['width' => 400, 'height' => 400]) ?></div>
+            <form method="post" action="<?= e(url('eliminar_producto.php')) ?>" data-confirmar="¿Eliminar definitivamente «<?= e($producto['nombre'] ?? '') ?>»? Los pedidos anteriores conservarán su información.">
+                <?= csrf_campo() ?><input type="hidden" name="id" value="<?= e((string)$id) ?>">
+                <button type="submit" class="btn btn-outline-danger w-100"><i class="bi bi-trash" aria-hidden="true"></i> Eliminar producto</button>
+            </form>
+        </div>
+    </div>
 </div>
-
-<hr><br>
-<center><b><footer>© 2025 <strong>CERAMISHOP</strong> - Todos los derechos reservados</footer></b></center>
-<br>
-
-</body>
-</html>
+<?php admin_fin(); ?>

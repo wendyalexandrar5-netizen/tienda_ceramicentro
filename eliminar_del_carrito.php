@@ -1,31 +1,15 @@
 <?php
-session_start();
-
-if (!isset($_SESSION['usuario'])) {
-    header("Location: login.php");
-    exit;
+/** Quita un producto del carrito (POST con token CSRF). */
+require_once __DIR__ . '/includes/tienda.php';
+requerir_sesion('cliente');
+if (!es_post()) {
+    redirigir('ver_carrito.php');
 }
-
-if (!isset($_GET['id'])) {
-    header("Location: ver_carrito.php");
-    exit;
+csrf_verificar();
+$id = (string)($_POST['id'] ?? '');
+if (isset($_SESSION['carrito'][$id])) {
+    $nombre = $_SESSION['carrito'][$id]['nombre'] ?? 'El producto';
+    carrito_quitar($id);
+    flash('success', '«' . $nombre . '» se quitó del carrito.');
 }
-
-$productoId = $_GET['id'];
-
-if (!isset($_SESSION['carrito'])) {
-    header("Location: ver_carrito.php");
-    exit;
-}
-
-if (isset($_SESSION['carrito'][$productoId])) {
-    unset($_SESSION['carrito'][$productoId]);
-}
-
-if (empty($_SESSION['carrito'])) {
-    unset($_SESSION['carrito']);
-}
-
-header("Location: ver_carrito.php");
-exit;
-?>
+redirigir('ver_carrito.php');

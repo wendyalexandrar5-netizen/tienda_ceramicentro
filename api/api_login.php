@@ -1,107 +1,41 @@
 <?php
+/**
+ * POST /api/api_login.php   {correo, password}
+ * Respuesta: {success, message, usuario:{id,nombre,correo,rol}, token}
+ */
+require_once __DIR__ . '/_comun.php';
+api_metodo('POST');
 
-require __DIR__ . '/../vendor/autoload.php';
-include("../conexion_mongo.php");
+$d = api_datos();
+$correo = normalizar_correo((string)($d['correo'] ?? ''));
+$password = (string)($d['password'] ?? '');
 
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
+if ($correo === '' || $password === '') {
+    api_error('validacion', 'Correo y contraseña son obligatorios.', 422);
+}
+if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+    api_error('validacion', 'El correo no tiene un formato válido.', 422);
+}
+if ($min = login_bloqueado($correo)) {
+    api_error('demasiados_intentos', 'Demasiados intentos fallidos. Espera ' . $min . ' minuto(s) e intenta de nuevo.', 429);
 }
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-$correo = mb_strtolower(trim($data["correo"] ?? ""), "UTF-8");
-$password = $data["password"] ?? "";
-
-if ($correo === "" || $password === "") {
-    echo json_encode([
-        "success" => false,
-        "message" => "Correo y contraseña son obligatorios."
-    ]);
-    exit;
+$usuario = usuario_por_correo($correo, ['_id' => 1, 'nombre' => 1, 'correo' => 1, 'rol' => 1, 'contraseña' => 1, 'contrasena' => 1, 'activo' => 1]);
+if (!$usuario || !verificar_clave_usuario($usuario, $password)) {
+    login_registrar_fallo($correo);
+    api_error('credenciales', 'Correo o contraseña incorrectos.', 401);
 }
-
-try {
-
-    $db = mongo();
-    $colUsuarios = $db->selectCollection("usuarios");
-
-    $usuario = $colUsuarios->findOne(
-        ["correo" => $correo],
-        [
-            "projection" => [
-                "_id" => 1,
-                "nombre" => 1,
-                "correo" => 1,
-                "rol" => 1,
-                "contraseña" => 1,
-                "contrasena" => 1
-            ],
-            "typeMap" => [
-                "root" => "array",
-                "document" => "array",
-                "array" => "array"
-            ],
-            "collation" => [
-                "locale" => "es",
-                "strength" => 2
-            ]
-        ]
-    );
-
-    if (!$usuario) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Usuario no encontrado."
-        ]);
-        exit;
-    }
-
-    $hash = "";
-
-    if (isset($usuario["contraseña"])) {
-        $hash = $usuario["contraseña"];
-    } elseif (isset($usuario["contrasena"])) {
-        $hash = $usuario["contrasena"];
-    }
-
-    if ($hash === "" || !password_verify($password, $hash)) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Contraseña incorrecta."
-        ]);
-        exit;
-    }
-
-    if (($usuario["rol"] ?? "") !== "cliente") {
-        echo json_encode([
-            "success" => false,
-            "message" => "Esta app es solo para clientes."
-        ]);
-        exit;
-    }
-
-    echo json_encode([
-        "success" => true,
-        "message" => "Login correcto.",
-        "usuario" => [
-            "id" => (string)$usuario["_id"],
-            "nombre" => $usuario["nombre"] ?? "",
-            "correo" => $usuario["correo"] ?? $correo,
-            "rol" => $usuario["rol"] ?? ""
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-
-} catch(Exception $e) {
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Error del servidor.",
-        "error" => $e->getMessage()
-    ]);
+if (($usuario['activo'] ?? true) === false) {
+    api_error('cuenta_inactiva', 'Tu cuenta está desactivada. Comunícate con CERAMICENTRO.', 403);
 }
+if (($usuario['rol'] ?? '') !== 'cliente') {
+    api_error('no_autorizado', 'Esta app es solo para clientes. Los administradores usan el panel web.', 403);
+}
+login_limpiar_intentos($correo);
+
+json_respuesta([
+    'success' => true,
+    'message' => 'Login correcto.',
+    'usuario' => api_usuario_publico($usuario),
+    'token'   => token_app_crear($usuario['_id']),
+]);
