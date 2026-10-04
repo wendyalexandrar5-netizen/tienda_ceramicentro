@@ -23,7 +23,10 @@ Navegador web ───────────────────┘
    anteriores: `mongodb://localhost:27017`, base `ceramicentro_mongo`.
 5. Cree los índices de MongoDB (no modifica datos, se puede repetir):
    `php scripts/crear_indices.php`
-6. (Opcional) Genere versiones WebP de las imágenes existentes, sin borrar los originales:
+6. Imágenes: las carpetas `img/` e `imagenes/` ya están en el repositorio, con versiones WebP optimizadas.
+   Se eliminaron imágenes de una plantilla de café y copias duplicadas. Para comprobar que todos los productos
+   de MongoDB tengan su imagen: `php scripts/verificar_imagenes.php` (y `--reparar` para corregir referencias a
+   duplicados eliminados; la web ya los resuelve sola). Si subes imágenes nuevas a mano:
    `php scripts/optimizar_imagenes.php`
 7. Asegúrese de que `mod_rewrite` esté activo (lo usan la página 404, `sitemap.xml` y `robots.txt`).
 

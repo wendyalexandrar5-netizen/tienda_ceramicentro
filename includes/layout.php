@@ -40,8 +40,8 @@ function layout_head(array $m): void
     <meta name="twitter:card" content="summary_large_image">
     <?php endif; ?>
     <meta name="theme-color" content="#c62828">
-    <link rel="icon" type="image/png" href="<?= e(url('imagenes/logosinfondo.png')) ?>">
-    <link rel="apple-touch-icon" href="<?= e(url('imagenes/logosinfondo.png')) ?>">
+    <link rel="icon" type="image/png" sizes="96x96" href="<?= e(url('assets/img/logo-96.png')) ?>">
+    <link rel="apple-touch-icon" href="<?= e(url('assets/img/logo-192.png')) ?>">
     <?php if (!empty($m['precargar'])): ?><link rel="preload" as="image" href="<?= e($m['precargar']) ?>" fetchpriority="high"><?php endif; ?>
     <?php recursos_css(); ?>
     <link href="<?= e(asset('assets/css/ceramishop.css')) ?>" rel="stylesheet">
@@ -238,7 +238,7 @@ function layout_inicio(array $m = []): void
     <nav class="navbar navbar-expand-lg navbar-dark" aria-label="Navegación principal">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="<?= e(url(es_cliente() ? 'tienda.php' : 'index.php')) ?>">
-                <img src="<?= e(url('imagenes/logosinfondo.png')) ?>" alt="" width="44" height="44" class="cs-logo" onerror="this.style.display='none'">
+                <img src="<?= e(url('assets/img/logo-blanco-96.png')) ?>" alt="" width="44" height="44" class="cs-logo" onerror="this.style.display='none'">
                 <span class="cs-marca">CERAMICENTRO</span>
             </a>
             <div class="d-flex align-items-center gap-2 order-lg-last">
@@ -422,7 +422,7 @@ function admin_inicio(string $titulo, string $activo = '', array $opc = []): voi
             <i class="bi bi-list" aria-hidden="true"></i>
         </button>
         <a class="navbar-brand d-flex align-items-center gap-2 me-auto" href="<?= e(url('panel_admin.php')) ?>">
-            <img src="<?= e(url('imagenes/logosinfondo.png')) ?>" alt="" width="34" height="34" class="cs-logo" onerror="this.style.display='none'">
+            <img src="<?= e(url('assets/img/logo-blanco-96.png')) ?>" alt="" width="34" height="34" class="cs-logo" onerror="this.style.display='none'">
             <span class="fw-bold">CERAMISHOP <span class="fw-normal d-none d-sm-inline">· Administración</span></span>
         </a>
         <span class="text-white-50 small d-none d-md-inline me-3"><i class="bi bi-person-badge" aria-hidden="true"></i> <?= e($u['nombre'] ?? '') ?></span>

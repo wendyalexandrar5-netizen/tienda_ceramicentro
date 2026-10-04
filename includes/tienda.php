@@ -4,6 +4,7 @@
  * Colecciones: productos, categorias.
  */
 require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/imagenes_duplicadas.php';
 
 use MongoDB\BSON\ObjectId;
 
@@ -137,7 +138,7 @@ function imagen_ruta_segura(string $ruta): string
     if ($ruta === '' || strpos($ruta, '..') !== false || preg_match('#^[a-z]+:#i', $ruta)) {
         return '';
     }
-    return ltrim($ruta, '/');
+    return imagen_resolver(ltrim($ruta, '/'));
 }
 
 /**

@@ -23,7 +23,7 @@ AddDefaultCharset UTF-8
     # --- Sitemap y robots dinámicos ------------------------------------------
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
     RewriteRule ^robots\.txt$ robots.php [L]
-    RewriteRule ^favicon\.ico$ imagenes/logosinfondo.png [L]
+    RewriteRule ^favicon\.ico$ assets/img/logo-96.png [L]
 
     # --- Bloquear archivos internos y de configuración ------------------------
     RewriteRule ^(composer\.(json|lock)|README\.md|\.git.*|\.env.*)$ - [F,L]

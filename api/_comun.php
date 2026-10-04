@@ -9,6 +9,7 @@
 define('CS_API', true);
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/seguridad.php';
+require_once __DIR__ . '/../includes/imagenes_duplicadas.php';
 
 // CORS: solo orígenes permitidos (la app Capacitor usa https://localhost)
 $origen = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -103,7 +104,7 @@ function imagen_ruta_segura_api(string $ruta): string
     if ($ruta === '' || strpos($ruta, '..') !== false || preg_match('#^[a-z]+:#i', $ruta)) {
         return '';
     }
-    return ltrim($ruta, '/');
+    return imagen_resolver(ltrim($ruta, '/'));
 }
 
 /** Enlace firmado (válido 30 minutos) para descargar el comprobante PDF desde la app. */
