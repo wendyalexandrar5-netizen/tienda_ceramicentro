@@ -540,6 +540,11 @@ namespace MongoDB {
                 $arg = $etapa[$op];
                 switch ($op) {
                     case '$match':
+                        // Igual que el MongoDB real: un arreglo PHP vacío se envía como lista BSON y $match lo rechaza
+                        if ($arg === []) {
+                            throw new \MongoDB\Driver\Exception\RuntimeException('the match filter must be an expression in an object');
+                        }
+                        $arg = (array)$arg; // un objeto (stdClass) vacío sí es válido: coincide con todo
                         $docs = array_values(array_filter($docs, fn($d) => self::cumple($d, $arg)));
                         break;
                     case '$sort': self::ordenar($docs, $arg); break;
