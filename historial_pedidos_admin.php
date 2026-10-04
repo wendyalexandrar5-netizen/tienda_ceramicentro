@@ -30,7 +30,8 @@ $pagina = min($paginas, max(1, (int)($_GET['pagina'] ?? 1)));
 $pedidos = iterator_to_array($col->find($q, ['sort' => ['fecha' => -1], 'skip' => ($pagina - 1) * $porPagina, 'limit' => $porPagina]), false);
 $clientes = clientes_de_pedidos($pedidos);
 $detalles = detalles_de_pedidos(array_map(fn($p) => $p['_id'], $pedidos));
-$sumaFiltro = $col->aggregate([['$match' => $q], ['$group' => ['_id' => null, 't' => ['$sum' => '$total']]]])->toArray();
+// Un filtro vacío debe enviarse como documento ({}), no como lista ([]): MongoDB rechaza $match con una lista
+$sumaFiltro = $col->aggregate([['$match' => $q ?: new stdClass()], ['$group' => ['_id' => null, 't' => ['$sum' => '$total']]]])->toArray();
 $params = array_filter($f);
 
 admin_inicio('Pedidos', 'pedidos', ['acciones' => boton_exportar('exportar_pedidos_excel.php', $params)]);
