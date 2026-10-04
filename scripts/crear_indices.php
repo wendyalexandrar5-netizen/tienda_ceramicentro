@@ -21,6 +21,7 @@ $indices = [
     'intentos_login'      => [[['clave' => 1, 'fecha' => -1], []], [['fecha' => 1], ['expireAfterSeconds' => 86400]]],
     'tokens_app'          => [[['token_hash' => 1], ['unique' => true]], [['usuario_id' => 1], []], [['expira' => 1], ['expireAfterSeconds' => 0]]],
     'mensajes_contacto'   => [[['fecha' => -1], []]],
+    'recuperaciones_clave'=> [[['token_hash' => 1], ['unique' => true]], [['expira' => 1], ['expireAfterSeconds' => 0]]],
 ];
 
 foreach ($indices as $coleccion => $lista) {

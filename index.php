@@ -25,6 +25,7 @@ layout_inicio([
     'descripcion' => 'CERAMICENTRO: cerámica, baldosas, enchapes, pisos, techos PVC, baños y materiales de construcción. Compra en línea en CERAMISHOP con pago PSE.',
     'canonical'   => 'index.php',
     'activo'      => 'inicio',
+    'precargar'   => url('img/fondoindex.png'),
     'jsonld'      => [jsonld_organizacion(), jsonld_sitio_web()],
 ]);
 ?>

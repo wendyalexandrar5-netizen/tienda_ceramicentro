@@ -7,6 +7,7 @@
 $agotado = $p['stock'] <= 0;
 $pocas   = !$agotado && $p['stock'] <= 5;
 $urlProducto = url('producto.php', ['id' => $p['id']]);
+$hTarjeta = $nivelTitulo ?? 'h3'; // h2 cuando la tarjeta está directamente bajo el h1 de la página
 ?>
 <article class="producto-card">
     <a class="producto-media" href="<?= e($urlProducto) ?>" tabindex="-1" aria-hidden="true">
@@ -16,7 +17,7 @@ $urlProducto = url('producto.php', ['id' => $p['id']]);
     </a>
     <div class="card-body">
         <span class="producto-categoria"><?= e($p['categoria']) ?></span>
-        <h3 class="producto-nombre"><a href="<?= e($urlProducto) ?>"><?= e($p['nombre']) ?></a></h3>
+        <<?= $hTarjeta ?> class="producto-nombre"><a href="<?= e($urlProducto) ?>"><?= e($p['nombre']) ?></a></<?= $hTarjeta ?>>
         <?php if ($p['descripcion'] !== ''): ?><p class="producto-desc"><?= e($p['descripcion']) ?></p><?php endif; ?>
         <p class="producto-precio mb-0"><?= e(dinero($p['precio'])) ?></p>
     </div>

@@ -96,4 +96,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-<?php admin_fin(['scripts' => ['https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.js']]); ?>
+<?php admin_fin(['scripts' => [url_chartjs()]]); ?>

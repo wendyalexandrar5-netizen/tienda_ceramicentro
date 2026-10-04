@@ -78,5 +78,23 @@ return [
     ],
 
     // Minutos de inactividad antes de cerrar la sesión web.
+    // Proyecto académico universitario. Con 'activo' => true se muestra un aviso en el pie de
+    // página y en los textos legales indicando que no se realizan ventas ni cobros reales.
+    'academico' => [
+        'activo'      => true,
+        'institucion' => '',   // Ej.: 'Universidad ...'
+        'programa'    => '',   // Ej.: 'Tecnología en Análisis y Desarrollo de Software'
+        'autores'     => '',   // Ej.: 'Nombre 1, Nombre 2'
+        'anio'        => '2025',
+    ],
+
+    // false (recomendado) = Bootstrap, íconos y la fuente Poppins se cargan desde assets/vendor,
+    // así el sitio se ve bien aunque no haya internet. true = usar las CDN públicas.
+    'recursos_cdn' => false,
+
     'minutos_sesion' => 120,
+
+    // Horas que un pedido "Pendiente de pago" reserva el inventario. Después se cancela
+    // automáticamente y los productos vuelven a estar disponibles.
+    'horas_reserva' => 24,
 ];

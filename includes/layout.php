@@ -42,12 +42,8 @@ function layout_head(array $m): void
     <meta name="theme-color" content="#c62828">
     <link rel="icon" type="image/png" href="<?= e(url('imagenes/logosinfondo.png')) ?>">
     <link rel="apple-touch-icon" href="<?= e(url('imagenes/logosinfondo.png')) ?>">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <?php if (!empty($m['precargar'])): ?><link rel="preload" as="image" href="<?= e($m['precargar']) ?>" fetchpriority="high"><?php endif; ?>
+    <?php recursos_css(); ?>
     <link href="<?= e(asset('assets/css/ceramishop.css')) ?>" rel="stylesheet">
     <?php
     foreach ((array)($m['jsonld'] ?? []) as $bloque) {
@@ -57,6 +53,40 @@ function layout_head(array $m): void
                 . "</script>\n";
         }
     }
+}
+
+/**
+ * Bootstrap, íconos y fuente Poppins. Por defecto se sirven desde assets/vendor (funciona sin
+ * internet, útil para demostraciones locales). Con 'recursos_cdn' => true se usan las CDN.
+ */
+function recursos_css(): void
+{
+    if (config('recursos_cdn')) {
+        echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n"
+            . '    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n"
+            . '    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">' . "\n"
+            . '    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">' . "\n"
+            . '    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">' . "\n";
+        return;
+    }
+    echo '<link rel="preload" href="' . e(url('assets/vendor/poppins/poppins-latin-400-normal.woff2')) . '" as="font" type="font/woff2" crossorigin>' . "\n"
+        . '    <link href="' . e(url('assets/vendor/poppins/poppins.css')) . '" rel="stylesheet">' . "\n"
+        . '    <link href="' . e(url('assets/vendor/bootstrap/bootstrap.min.css')) . '" rel="stylesheet">' . "\n"
+        . '    <link href="' . e(url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css')) . '" rel="stylesheet">' . "\n";
+}
+
+function recursos_js(): void
+{
+    echo config('recursos_cdn')
+        ? '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" defer></script>'
+        : '<script src="' . e(url('assets/vendor/bootstrap/bootstrap.bundle.min.js')) . '" defer></script>';
+    echo "\n";
+}
+
+/** URL de Chart.js (local o CDN). */
+function url_chartjs(): string
+{
+    return config('recursos_cdn') ? 'https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.js' : url('assets/vendor/chartjs/chart.umd.js');
 }
 
 /** Configuración que el JavaScript del sitio necesita (sin datos sensibles). */
@@ -313,11 +343,6 @@ function layout_fin(array $opc = []): void
             </div>
         </div>
     </div>
-    <div class="cs-footer-base">
-        <div class="container py-3 small text-center">© <?= e($anio) ?> <strong>CERAMISHOP</strong> - Todos los derechos reservados</div>
-    </div>
-</footer>
-
 <?php if ($wa && empty($opc['sin_whatsapp'])): ?>
 <a href="<?= e($wa) ?>" class="cs-whatsapp" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp" data-evento="contacto_whatsapp">
     <i class="bi bi-whatsapp" aria-hidden="true"></i><span class="cs-whatsapp-texto">¿Te ayudamos?</span>
@@ -328,7 +353,7 @@ function layout_fin(array $opc = []): void
     <div class="container d-flex flex-column flex-md-row align-items-md-center gap-3">
         <p class="mb-0 small flex-grow-1">
             Usamos cookies necesarias para que la tienda funcione (sesión y carrito). Con tu permiso, también usamos cookies de analítica
-            para entender cómo se usa el sitio, sin recopilar datos personales. <a href="<?= e(url('politica_cookies.php')) ?>">Más información</a>.
+            para entender cómo se usa el sitio, sin recopilar datos personales. <a href="<?= e(url('politica_cookies.php')) ?>">Leer la política de cookies</a>.
         </p>
         <div class="d-flex gap-2 flex-shrink-0">
             <button type="button" class="btn btn-outline-light btn-sm" data-cookies="necesarias">Solo necesarias</button>
@@ -336,9 +361,18 @@ function layout_fin(array $opc = []): void
         </div>
     </div>
 </div>
+    <div class="cs-footer-base">
+        <div class="container py-3 small text-center">
+            © <?= e($anio) ?> <strong>CERAMISHOP</strong> - Todos los derechos reservados
+            <?php if (config('academico.activo')): ?>
+            <br><span class="opacity-75"><?= e(texto_academico_corto()) ?> <a href="<?= e(url('aviso_legal.php')) ?>">Más información en el aviso legal</a></span>
+            <?php endif; ?>
+        </div>
+    </div>
+</footer>
 
 <?php layout_config_js(); ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" defer></script>
+<?php recursos_js(); ?>
 <script src="<?= e(asset('assets/js/ceramishop.js')) ?>" defer></script>
 <?php foreach ((array)($opc['scripts'] ?? []) as $s): ?>
 <script src="<?= e($s) ?>" defer></script>
@@ -432,7 +466,7 @@ function admin_fin(array $opc = []): void
     </main>
 </div>
 <?php layout_config_js(); ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" defer></script>
+<?php recursos_js(); ?>
 <script src="<?= e(asset('assets/js/ceramishop.js')) ?>" defer></script>
 <?php foreach ((array)($opc['scripts'] ?? []) as $s): ?>
 <script src="<?= e($s) ?>" defer></script>
@@ -440,6 +474,13 @@ function admin_fin(array $opc = []): void
 </body>
 </html>
 <?php
+}
+
+/** Frase breve del aviso de proyecto académico. */
+function texto_academico_corto(): string
+{
+    $inst = trim((string)config('academico.institucion', ''));
+    return 'Proyecto académico' . ($inst !== '' ? ' de ' . $inst : ' universitario') . ': no se realizan ventas, envíos ni cobros reales.';
 }
 
 /** Paginación accesible (conserva los filtros actuales). */

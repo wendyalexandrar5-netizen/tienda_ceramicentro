@@ -11,7 +11,7 @@ $privadas = [
     'reporte_ventas_pdf.php', 'exportar_', 'tienda.php', 'ver_carrito.php', 'agregar_carrito.php', 'actualizar_carrito.php',
     'eliminar_del_carrito.php', 'vaciar_carrito.php', 'realizar_pedido.php', 'pago_pse.php', 'pago_exitoso.php', 'mis_pedidos.php',
     'ver_pedido.php', 'descargar_pedido.php', 'generar_comprobante.php', 'repetir_pedido.php', 'mi_cuenta.php', 'logout.php',
-    'buscar_producto_tienda.php', 'acceso_denegado.php', 'api/', 'includes/', 'config/', 'vendor/', 'logs/', 'scripts/', 'mobile-app/',
+    'buscar_producto_tienda.php', 'recuperar_clave.php', 'restablecer_clave.php', 'admin_pedido.php', 'acceso_denegado.php', 'api/', 'includes/', 'config/', 'vendor/', 'logs/', 'scripts/', 'mobile-app/',
 ];
 echo "User-agent: *\n";
 foreach ($privadas as $p) {

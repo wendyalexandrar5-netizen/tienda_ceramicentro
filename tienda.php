@@ -1,9 +1,11 @@
 <?php
 /** Tienda para clientes con sesión iniciada: catálogo con compra directa. */
+require_once __DIR__ . '/includes/pedidos.php';
 require_once __DIR__ . '/includes/layout.php';
 require_once __DIR__ . '/includes/tienda.php';
 require_once __DIR__ . '/includes/filtros_catalogo.php';
 requerir_sesion('cliente');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $filtros  = filtros_catalogo();
 $catalogo = buscar_con_filtros($filtros);

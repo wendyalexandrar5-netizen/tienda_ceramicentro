@@ -7,6 +7,7 @@
 require_once __DIR__ . '/_comun.php';
 require_once __DIR__ . '/../includes/pedidos.php';
 api_metodo('POST', 'GET');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $d = api_datos();
 $usuario = api_usuario((string)($d['usuario_id'] ?? ''));

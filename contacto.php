@@ -7,8 +7,8 @@
  * - Protección: CSRF, campo trampa anti-spam, tiempo mínimo y límite de envíos.
  */
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/correo.php';
 
-use PHPMailer\PHPMailer\PHPMailer;
 
 $errores = [];
 $datos = ['nombre' => '', 'correo' => '', 'asunto' => '', 'mensaje' => ''];
@@ -56,44 +56,24 @@ if (es_post()) {
             }
 
             // 2) Enviar por correo si está configurado
-            $enviado = false;
-            $smtpUsuario = (string)config('smtp.usuario', '');
-            $smtpClave = (string)config('smtp.clave', '');
-            if ($smtpUsuario !== '' && $smtpClave !== '') {
-                $mail = new PHPMailer(true);
-                try {
-                    $mail->CharSet = 'UTF-8';
-                    $mail->isSMTP();
-                    $mail->Host       = (string)config('smtp.host', 'smtp.gmail.com');
-                    $mail->SMTPAuth   = true;
-                    $mail->Username   = $smtpUsuario;
-                    $mail->Password   = $smtpClave;
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port       = (int)config('smtp.puerto', 587);
-                    $mail->Timeout    = 10;
-                    $remitente = (string)(config('smtp.remitente') ?: $smtpUsuario);
-                    $mail->setFrom($remitente, 'CERAMICENTRO Web');
-                    $mail->addAddress((string)(config('smtp.destino') ?: $remitente), 'CERAMICENTRO');
-                    $mail->addReplyTo($datos['correo'], $datos['nombre']);
-                    $mail->isHTML(true);
-                    $mail->Subject = 'Contacto web: ' . preg_replace('/[\r\n]+/', ' ', $datos['asunto']);
-                    $mail->Body = '<h3>Nuevo mensaje desde el formulario de contacto</h3>'
-                        . '<p><strong>Nombre:</strong> ' . e($datos['nombre']) . '</p>'
-                        . '<p><strong>Correo:</strong> ' . e($datos['correo']) . '</p>'
-                        . '<p><strong>Asunto:</strong> ' . e($datos['asunto']) . '</p>'
-                        . '<p><strong>Mensaje:</strong><br>' . nl2br(e($datos['mensaje'])) . '</p>';
-                    $mail->AltBody = "Nombre: {$datos['nombre']}\nCorreo: {$datos['correo']}\nAsunto: {$datos['asunto']}\n\n{$datos['mensaje']}";
-                    $mail->send();
-                    $enviado = true;
-                    if ($guardado) {
-                        mongo()->selectCollection('mensajes_contacto')->updateOne(
-                            ['correo' => $datos['correo'], 'asunto' => $datos['asunto'], 'enviado_correo' => false],
-                            ['$set' => ['enviado_correo' => true]]
-                        );
-                    }
-                } catch (Throwable $e) {
-                    log_app('error', 'Fallo SMTP en contacto: ' . ($mail->ErrorInfo ?: $e->getMessage()));
-                }
+            $destino = (string)(config('smtp.destino') ?: (config('smtp.remitente') ?: config('smtp.usuario')));
+            $enviado = $destino !== '' && enviar_correo(
+                $destino,
+                'CERAMICENTRO',
+                'Contacto web: ' . $datos['asunto'],
+                '<h3>Nuevo mensaje desde el formulario de contacto</h3>'
+                    . '<p><strong>Nombre:</strong> ' . e($datos['nombre']) . '</p>'
+                    . '<p><strong>Correo:</strong> ' . e($datos['correo']) . '</p>'
+                    . '<p><strong>Asunto:</strong> ' . e($datos['asunto']) . '</p>'
+                    . '<p><strong>Mensaje:</strong><br>' . nl2br(e($datos['mensaje'])) . '</p>',
+                "Nombre: {$datos['nombre']}\nCorreo: {$datos['correo']}\nAsunto: {$datos['asunto']}\n\n{$datos['mensaje']}",
+                [$datos['correo'], $datos['nombre']]
+            );
+            if ($enviado && $guardado) {
+                mongo()->selectCollection('mensajes_contacto')->updateOne(
+                    ['correo' => $datos['correo'], 'asunto' => $datos['asunto'], 'enviado_correo' => false],
+                    ['$set' => ['enviado_correo' => true]]
+                );
             }
 
             if (!$guardado && !$enviado) {

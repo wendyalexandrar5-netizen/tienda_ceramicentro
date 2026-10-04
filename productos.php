@@ -1,8 +1,10 @@
 <?php
 /** Catálogo público de productos (antes productos.html, ahora con datos reales de MongoDB). */
+require_once __DIR__ . '/includes/pedidos.php';
 require_once __DIR__ . '/includes/layout.php';
 require_once __DIR__ . '/includes/tienda.php';
 require_once __DIR__ . '/includes/filtros_catalogo.php';
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $filtros  = filtros_catalogo();
 $catalogo = buscar_con_filtros($filtros);
@@ -56,6 +58,6 @@ layout_inicio([
         <p class="small mt-2 mb-0"><i class="bi bi-info-circle" aria-hidden="true"></i> Para comprar, <a href="<?= e(url('login.php')) ?>">inicia sesión</a> o <a href="<?= e(url('registro.php')) ?>">crea tu cuenta gratis</a>.</p>
         <?php endif; ?>
     </header>
-    <?php require __DIR__ . '/includes/catalogo.php'; ?>
+    <?php $nivelTitulo = 'h2'; require __DIR__ . '/includes/catalogo.php'; ?>
 </section>
 <?php layout_fin(['eventos' => $eventos]); ?>

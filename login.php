@@ -85,6 +85,7 @@ layout_inicio([
                     <button type="button" class="btn-ver-clave" aria-label="Mostrar contraseña" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button>
                 </div>
             </div>
+            <p class="text-end small mb-3"><a href="<?= e(url('recuperar_clave.php')) ?>">¿Olvidaste tu contraseña?</a></p>
             <div class="d-grid mb-3">
                 <button type="submit" class="btn btn-cs btn-lg" data-cargando="Ingresando…"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Ingresar</button>
             </div>

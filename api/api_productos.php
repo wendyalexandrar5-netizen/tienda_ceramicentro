@@ -4,8 +4,10 @@
  * Respuesta (compatible con la app existente): arreglo de productos
  * [{id, nombre, descripcion, precio, stock, categoria, categoria_id, imagen}]
  */
+require_once __DIR__ . '/../includes/pedidos.php';
 require_once __DIR__ . '/_comun.php';
 api_metodo('GET');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $filtro = [];
 if (!empty($_GET['categoria']) && ($cat = oid((string)$_GET['categoria']))) {

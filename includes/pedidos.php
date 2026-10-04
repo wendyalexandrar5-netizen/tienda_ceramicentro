@@ -317,31 +317,111 @@ function pedido_cambiar_estado(array $pedido, string $nuevo, string $por, array 
     if ($actual === $nuevo && !$extra) {
         return ['ok' => true, 'mensaje' => 'El pedido ya estaba en estado "' . $nuevo . '".'];
     }
-    $db = mongo();
-    $set = $extra;
+    $col = mongo()->selectCollection('pedidos');
     $stockDevuelto = !empty($pedido['stock_devuelto']);
-    $lineas = null;
+    $devolver = in_array($nuevo, estados_sin_stock(), true) && !$stockDevuelto;
+    $reservar = !in_array($nuevo, estados_sin_stock(), true) && $stockDevuelto;
+    $lineas = ($devolver || $reservar)
+        ? array_map(fn($d) => ['producto_id' => (string)$d['producto_id'], 'cantidad' => (int)$d['cantidad'], 'nombre' => $d['nombre_producto']], pedido_detalles($pedido))
+        : [];
 
-    if (in_array($nuevo, estados_sin_stock(), true) && !$stockDevuelto) {
-        $lineas = array_map(fn($d) => ['producto_id' => (string)$d['producto_id'], 'cantidad' => (int)$d['cantidad'], 'nombre' => $d['nombre_producto']], pedido_detalles($pedido));
-        devolver_stock($lineas);
-        $set['stock_devuelto'] = true;
-    } elseif (!in_array($nuevo, estados_sin_stock(), true) && $stockDevuelto) {
-        $lineas = array_map(fn($d) => ['producto_id' => (string)$d['producto_id'], 'cantidad' => (int)$d['cantidad'], 'nombre' => $d['nombre_producto']], pedido_detalles($pedido));
+    // Si hay que volver a descontar inventario, se intenta antes de cambiar el estado
+    if ($reservar) {
         $r = reservar_stock($lineas);
         if (!$r['ok']) {
             return ['ok' => false, 'mensaje' => $r['mensaje']];
         }
-        $set['stock_devuelto'] = false;
     }
 
+    // Cambio atómico: solo se aplica si el pedido sigue en el estado que se leyó.
+    // Evita, por ejemplo, devolver el inventario dos veces si dos peticiones llegan a la vez.
+    $set = $extra;
     $set['estado'] = $nuevo;
     $set['actualizado_en'] = nowUTC();
-    $db->selectCollection('pedidos')->updateOne(
-        ['_id' => $pedido['_id']],
-        ['$set' => $set, '$push' => ['historial_estados' => ['estado' => $nuevo, 'fecha' => nowUTC(), 'por' => $por]]]
-    );
+    if ($devolver || $reservar) {
+        $set['stock_devuelto'] = $devolver;
+    }
+    $filtro = ['_id' => $pedido['_id']];
+    $filtro += isset($pedido['estado']) ? ['estado' => $pedido['estado']] : ['estado' => ['$exists' => false]];
+    $r = $col->updateOne($filtro, ['$set' => $set, '$push' => ['historial_estados' => ['estado' => $nuevo, 'fecha' => nowUTC(), 'por' => $por]]]);
+    if ($r->getModifiedCount() !== 1) {
+        if ($reservar) {
+            devolver_stock($lineas);
+        }
+        return ['ok' => false, 'mensaje' => 'El pedido cambió mientras tanto. Recarga la página e intenta de nuevo.'];
+    }
+    if ($devolver) {
+        devolver_stock($lineas);
+    }
     return ['ok' => true, 'mensaje' => 'Estado actualizado a "' . $nuevo . '".'];
+}
+
+/** Fecha límite de pago de un pedido pendiente (UTCDateTime) o null. */
+function pedido_vence(array $pedido): ?\MongoDB\BSON\UTCDateTime
+{
+    if (pedido_estado($pedido) !== ESTADO_PENDIENTE || empty($pedido['fecha'])) {
+        return null;
+    }
+    // Se cuenta desde la última vez que quedó pendiente (por ejemplo, al reintentar el pago)
+    $desde = $pedido['fecha'];
+    foreach ((array)($pedido['historial_estados'] ?? []) as $h) {
+        if (($h['estado'] ?? '') === ESTADO_PENDIENTE && !empty($h['fecha']) && empty($h['nota'])) {
+            $desde = $h['fecha'];
+        }
+    }
+    $horas = max(1, (int)config('horas_reserva', 24));
+    return new \MongoDB\BSON\UTCDateTime((int)(string)$desde + $horas * 3600 * 1000);
+}
+
+/** Cancela el pedido si su reserva venció. Devuelve el pedido actualizado. */
+function liberar_si_vencido(array $pedido): array
+{
+    $vence = pedido_vence($pedido);
+    if ($vence && (int)(string)$vence <= (int)(string)nowUTC()) {
+        $r = pedido_cambiar_estado($pedido, ESTADO_CANCELADO, 'sistema: reserva vencida', ['cancelado_por_vencimiento' => true]);
+        if ($r['ok']) {
+            log_app('info', 'Pedido cancelado por reserva vencida', ['pedido' => (string)$pedido['_id']]);
+        }
+        return pedido_por_id((string)$pedido['_id']) ?? $pedido;
+    }
+    return $pedido;
+}
+
+/**
+ * Cancela los pedidos "Pendiente de pago" cuya reserva venció y devuelve su inventario.
+ * Se ejecuta como máximo cada 5 minutos (o siempre con $forzar). Devuelve cuántos canceló.
+ */
+function liberar_pedidos_vencidos(bool $forzar = false): int
+{
+    try {
+        $db = mongo();
+        $ahora = time();
+        if (!$forzar) {
+            $marca = $db->selectCollection('contadores')->findOneAndUpdate(
+                ['_id' => 'limpieza_reservas', 'ultima' => ['$lt' => $ahora - 300]],
+                ['$set' => ['ultima' => $ahora]]
+            );
+            if (!$marca) {
+                if ($db->selectCollection('contadores')->countDocuments(['_id' => 'limpieza_reservas']) > 0) {
+                    return 0; // ya se ejecutó hace menos de 5 minutos
+                }
+                $db->selectCollection('contadores')->updateOne(['_id' => 'limpieza_reservas'], ['$set' => ['ultima' => $ahora]], ['upsert' => true]);
+            }
+        }
+        $limite = new \MongoDB\BSON\UTCDateTime(($ahora - max(1, (int)config('horas_reserva', 24)) * 3600) * 1000);
+        $n = 0;
+        // Candidatos: pendientes creados antes del límite (luego se valida con la fecha exacta)
+        foreach ($db->selectCollection('pedidos')->find(['estado' => ESTADO_PENDIENTE, 'fecha' => ['$lt' => $limite]], ['limit' => 200]) as $p) {
+            $antes = pedido_estado((array)$p);
+            if (pedido_estado(liberar_si_vencido((array)$p)) !== $antes) {
+                $n++;
+            }
+        }
+        return $n;
+    } catch (Throwable $e) {
+        log_app('aviso', 'No se pudieron liberar reservas vencidas: ' . $e->getMessage());
+        return 0;
+    }
 }
 
 /** Referencia de pago simulada (no corresponde a ninguna transacción bancaria real). */

@@ -74,7 +74,7 @@ layout_inicio(['titulo' => 'Mi carrito', 'noindex' => true, 'activo' => 'tienda'
             </div>
         </div>
         <div class="col-lg-4">
-            <aside class="cs-panel resumen-compra" aria-labelledby="tituloResumen">
+            <section class="cs-panel resumen-compra" aria-labelledby="tituloResumen">
                 <h2 id="tituloResumen" class="cs-panel-titulo">Resumen</h2>
                 <dl class="d-flex justify-content-between mb-2"><dt class="fw-normal">Productos</dt><dd class="mb-0"><?= (int)$resumen['unidades'] ?> unidades</dd></dl>
                 <dl class="d-flex justify-content-between mb-2 small text-secondary"><dt class="fw-normal">IVA incluido (19 %)</dt><dd class="mb-0"><?= e(dinero($resumen['total'] - $resumen['total'] / 1.19)) ?></dd></dl>
@@ -87,7 +87,7 @@ layout_inicio(['titulo' => 'Mi carrito', 'noindex' => true, 'activo' => 'tienda'
                 <a href="<?= e(url('realizar_pedido.php')) ?>" class="btn btn-cs btn-lg w-100" data-evento="begin_checkout_click"><i class="bi bi-lock" aria-hidden="true"></i> Finalizar compra</a>
                 <?php endif; ?>
                 <p class="small text-secondary mt-3 mb-0"><i class="bi bi-shield-check" aria-hidden="true"></i> El pago se realiza con un <strong>simulador de PSE</strong>: no se cobra dinero real.</p>
-            </aside>
+            </section>
         </div>
     </div>
     <?php endif; ?>

@@ -1,7 +1,9 @@
 <?php
 /** Control de inventario: existencias, valor del inventario y ajustes de stock con registro en historial. */
+require_once __DIR__ . '/includes/pedidos.php';
 require_once __DIR__ . '/includes/admin.php';
 requerir_sesion('administrador');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $col = mongo()->selectCollection('productos');
 $motivos = ['Ingreso de mercancía', 'Ajuste por conteo físico', 'Devolución de cliente', 'Producto dañado o perdido', 'Otro'];
@@ -74,7 +76,7 @@ admin_inicio('Control de inventario', 'inventario', ['acciones' => boton_exporta
 </form>
 
 <div class="cs-panel p-0 p-md-3">
-    <div class="table-responsive">
+    <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
         <table class="table table-hover align-middle tabla-apilable mb-0">
             <thead><tr><th scope="col">Producto</th><th scope="col">Categoría</th><th scope="col" class="text-end">Precio</th><th scope="col" class="text-end">Stock actual</th><th scope="col">Ajustar stock</th></tr></thead>
             <tbody>

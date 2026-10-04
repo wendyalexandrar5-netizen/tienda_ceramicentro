@@ -15,6 +15,7 @@ $pedido = pedido_de_usuario((string)($_GET['id'] ?? ''), $usuario['id']);
 if (!$pedido) {
     no_encontrado('No encontramos ese pedido en tu cuenta.');
 }
+$pedido = liberar_si_vencido($pedido);
 $id = (string)$pedido['_id'];
 $estado = pedido_estado($pedido);
 
@@ -107,6 +108,9 @@ layout_inicio(['titulo' => 'Pago PSE (simulador)', 'noindex' => true, 'activo' =
                     </div>
                 </div>
             <?php else: ?>
+            <?php if ($vence = pedido_vence($pedido)): ?>
+            <p class="small text-secondary"><i class="bi bi-clock" aria-hidden="true"></i> Tus productos están reservados hasta el <strong><?= e(fecha_local($vence)) ?></strong>. Si no completas el pago, el pedido se cancelará automáticamente.</p>
+            <?php endif; ?>
             <form method="post" id="formPse" data-validar novalidate>
                 <?= csrf_campo() ?>
                 <input type="hidden" name="accion" value="pagar">

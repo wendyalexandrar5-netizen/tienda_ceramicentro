@@ -3,6 +3,7 @@
 require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/pedidos.php';
 requerir_sesion('administrador');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $db = mongo();
 $colPedidos = $db->selectCollection('pedidos');
@@ -83,13 +84,13 @@ $kpis = [
             <?php if (!$ultimos): ?>
             <p class="text-secondary mb-0">Todavía no hay pedidos.</p>
             <?php else: ?>
-            <div class="table-responsive">
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
                 <table class="table table-hover align-middle tabla-apilable mb-0">
                     <thead><tr><th scope="col">Pedido</th><th scope="col">Cliente</th><th scope="col">Fecha</th><th scope="col">Estado</th><th scope="col" class="text-end">Total</th></tr></thead>
                     <tbody>
                     <?php foreach ($ultimos as $p): ?>
                         <tr>
-                            <td data-label="Pedido"><a href="<?= e(url('historial_pedidos_admin.php', ['numero' => pedido_numero($p)])) ?>"><?= e(pedido_numero($p)) ?></a></td>
+                            <td data-label="Pedido"><a href="<?= e(url('admin_pedido.php', ['id' => (string)$p['_id']])) ?>"><?= e(pedido_numero($p)) ?></a></td>
                             <td data-label="Cliente"><?= e($nombres[(string)($p['usuario_id'] ?? '')] ?? ($p['cliente']['nombre'] ?? 'Desconocido')) ?></td>
                             <td data-label="Fecha"><?= e(fecha_local($p['fecha'] ?? null, 'd/m/Y h:i a')) ?></td>
                             <td data-label="Estado"><?= estado_badge(pedido_estado($p)) ?></td>

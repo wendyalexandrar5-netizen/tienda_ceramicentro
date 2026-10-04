@@ -42,7 +42,13 @@ function cs_config_por_defecto(): array
             'modo_legado' => false,
             'dias_token'  => 30,
         ],
+        // Proyecto académico: se muestra un aviso en el pie y en los textos legales
+        'academico'      => ['activo' => true, 'institucion' => '', 'programa' => '', 'autores' => '', 'anio' => '2025'],
         'minutos_sesion' => 120,
+        // false = Bootstrap, íconos y fuentes desde assets/vendor (funciona sin internet)
+        'recursos_cdn'   => false,
+        // Horas que un pedido sin pagar mantiene reservado el inventario antes de cancelarse solo
+        'horas_reserva'  => 24,
     ];
 }
 

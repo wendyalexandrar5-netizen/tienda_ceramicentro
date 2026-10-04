@@ -33,7 +33,7 @@ admin_inicio('Historial de productos', 'historial', ['acciones' => boton_exporta
 </form>
 <p class="text-secondary small" role="status"><?= (int)$total ?> registro(s)<?= $paginas > 1 ? ' · página ' . $pagina . ' de ' . $paginas : '' ?></p>
 <div class="cs-panel p-0 p-md-3">
-    <div class="table-responsive">
+    <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
         <table class="table table-hover align-middle tabla-apilable mb-0">
             <thead><tr><th scope="col">Fecha</th><th scope="col">Administrador</th><th scope="col">Acción</th><th scope="col">Producto</th><th scope="col">Categoría antes</th><th scope="col">Categoría después</th><th scope="col">Cambios</th></tr></thead>
             <tbody>

@@ -36,6 +36,12 @@
         }
     });
 
+    // La recuperación de contraseña se hace en la web (se abre en el navegador del celular)
+    document.getElementById("olvideClave").addEventListener("click", ev => {
+        ev.preventDefault();
+        window.open(window.CS_APP.SERVIDOR + "/recuperar_clave.php", "_blank");
+    });
+
     function mostrar(t) {
         msg.textContent = t;
         msg.hidden = false;

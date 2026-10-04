@@ -21,6 +21,9 @@ $ejecutar = function (string $archivo) use ($raiz, $base) {
     $_SERVER['SCRIPT_NAME'] = $base . '/' . $archivo;
     $_SERVER['PHP_SELF'] = $_SERVER['SCRIPT_NAME'];
     chdir(dirname($raiz . '/' . $archivo));
+    if (strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
+        ob_start('ob_gzhandler');
+    }
     require $raiz . '/' . $archivo;
     return true;
 };
@@ -45,6 +48,13 @@ if (is_file($raiz . '/' . $rel)) {
         'jpeg' => 'image/jpeg', 'webp' => 'image/webp', 'avif' => 'image/avif', 'txt' => 'text/plain', 'html' => 'text/html'];
     $ext = strtolower(pathinfo($rel, PATHINFO_EXTENSION));
     header('Content-Type: ' . ($tipos[$ext] ?? 'application/octet-stream'));
+    // Igual que mod_deflate de Apache: comprime CSS/JS/SVG
+    if (in_array($ext, ['css', 'js', 'svg', 'txt', 'html'], true) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
+        header('Content-Encoding: gzip');
+        header('Vary: Accept-Encoding');
+        echo gzencode((string)file_get_contents($raiz . '/' . $rel), 6);
+        return true;
+    }
     readfile($raiz . '/' . $rel);
     return true;
 }

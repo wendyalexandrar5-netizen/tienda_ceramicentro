@@ -180,7 +180,7 @@ $err = fn($c) => isset($errores[$c]) ? '<div class="invalid-feedback d-block" id
                 <h2 class="cs-panel-titulo mb-0">Agregados recientemente</h2>
                 <a href="<?= e(url('ver_productos.php')) ?>" class="btn btn-sm btn-outline-cs">Ver todos los productos</a>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
                 <table class="table table-hover align-middle tabla-apilable mb-0">
                     <thead><tr><th scope="col">Imagen</th><th scope="col">Nombre</th><th scope="col">Precio</th><th scope="col">Stock</th><th scope="col">Categoría</th><th scope="col">Acciones</th></tr></thead>
                     <tbody>
@@ -223,7 +223,7 @@ $err = fn($c) => isset($errores[$c]) ? '<div class="invalid-feedback d-block" id
         </div>
         <div class="cs-panel">
             <h2 class="cs-panel-titulo">Categorías registradas</h2>
-            <div class="table-responsive">
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
                 <table class="table table-hover align-middle tabla-apilable mb-0">
                     <thead><tr><th scope="col">Nombre</th><th scope="col">Descripción</th><th scope="col">Productos</th><th scope="col">Acciones</th></tr></thead>
                     <tbody>

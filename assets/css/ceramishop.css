@@ -131,7 +131,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible, summary:
 .cs-hero h1 { font-size: clamp(2rem, 9vw, 4.7rem); overflow-wrap: anywhere; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 1.5rem; }
 .cs-hero p { color: #d8d8d8; max-width: 720px; margin: 0 auto 2rem; font-size: 1.05rem; }
 .btn-hero {
-    background: red; color: #f9fafc; text-transform: uppercase; font-weight: 600; letter-spacing: .05em;
+    background: #d50000; color: #f9fafc; text-transform: uppercase; font-weight: 600; letter-spacing: .05em;
     padding: .75rem 2.2rem; border-radius: 6px;
 }
 .btn-hero:hover, .btn-hero:focus-visible { background: var(--cs-rojo-oscuro); color: #fff; }
@@ -282,12 +282,12 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible, summary:
 .cs-whatsapp {
     position: fixed; right: 18px; bottom: 18px; z-index: 1040;
     display: inline-flex; align-items: center; gap: .5rem;
-    background: #1f9d55; color: #fff; text-decoration: none; border-radius: 999px;
+    background: #15803d; color: #fff; text-decoration: none; border-radius: 999px;
     padding: .7rem 1rem; font-weight: 600; box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
     transition: transform .2s, background .2s;
 }
 .cs-whatsapp i { font-size: 1.6rem; line-height: 1; }
-.cs-whatsapp:hover, .cs-whatsapp:focus-visible { background: #168043; color: #fff; transform: translateY(-2px); }
+.cs-whatsapp:hover, .cs-whatsapp:focus-visible { background: #11652f; color: #fff; transform: translateY(-2px); }
 body.con-barra-inferior .cs-whatsapp { bottom: 88px; }
 body.cookies-visibles .cs-whatsapp { bottom: var(--alto-cookies, 120px); }
 @media (max-width: 575.98px) {
@@ -348,3 +348,9 @@ body.cookies-visibles .cs-whatsapp { bottom: var(--alto-cookies, 120px); }
     body { background: #fff; }
 }
 .cs-footer .cs-footer-link { font-size: inherit; min-height: 0; line-height: 2; vertical-align: baseline; display: inline; border: 0; }
+
+/* Contraste AA (auditoría axe): botones de contorno grises y de peligro */
+.btn-outline-secondary { --bs-btn-color: #5c636a; --bs-btn-border-color: #8a9096; }
+.btn-outline-danger { --bs-btn-color: #b02a37; --bs-btn-border-color: #b02a37; }
+.cs-footer-base a { color: #fff; text-decoration: underline; }
+.cs-footer a.cs-whatsapp, .cs-footer a.cs-whatsapp:hover { color: #fff; line-height: 1.2; text-decoration: none; }

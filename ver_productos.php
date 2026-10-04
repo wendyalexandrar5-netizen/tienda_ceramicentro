@@ -57,7 +57,7 @@ admin_inicio('Gestión de productos', 'productos', ['acciones' =>
 <p class="text-secondary small" role="status"><?= (int)$total ?> producto(s) encontrados<?= $paginas > 1 ? ' · página ' . $pagina . ' de ' . $paginas : '' ?></p>
 
 <div class="cs-panel p-0 p-md-3">
-    <div class="table-responsive">
+    <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
         <table class="table table-hover align-middle tabla-apilable mb-0">
             <thead><tr><th scope="col">Imagen</th><th scope="col">Nombre</th><th scope="col">Categoría</th><th scope="col" class="text-end">Precio</th><th scope="col" class="text-end">Stock</th><th scope="col">Acciones</th></tr></thead>
             <tbody>

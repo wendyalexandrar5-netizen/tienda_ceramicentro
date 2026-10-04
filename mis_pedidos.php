@@ -3,6 +3,7 @@
 require_once __DIR__ . '/includes/layout.php';
 require_once __DIR__ . '/includes/pedidos.php';
 requerir_sesion('cliente');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $uid = oid(usuario_actual()['id']);
 $col = mongo()->selectCollection('pedidos');

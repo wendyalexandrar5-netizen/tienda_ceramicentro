@@ -86,7 +86,7 @@ admin_inicio('Usuarios', 'usuarios', ['acciones' =>
 </form>
 <p class="text-secondary small" role="status"><?= (int)$total ?> usuario(s)<?= $paginas > 1 ? ' · página ' . $pagina . ' de ' . $paginas : '' ?></p>
 <div class="cs-panel p-0 p-md-3">
-    <div class="table-responsive">
+    <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
         <table class="table table-hover align-middle tabla-apilable mb-0">
             <thead><tr><th scope="col">Nombre</th><th scope="col">Correo</th><th scope="col">Rol</th><th scope="col">Estado</th><th scope="col">Pedidos</th><th scope="col">Registro</th><th scope="col">Acciones</th></tr></thead>
             <tbody>

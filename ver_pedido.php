@@ -9,6 +9,7 @@ $pedido = pedido_de_usuario((string)($_GET['id'] ?? ''), usuario_actual()['id'])
 if (!$pedido) {
     no_encontrado('No encontramos ese pedido en tu cuenta. Revisa la lista de tus pedidos.');
 }
+$pedido = liberar_si_vencido($pedido);
 $id = (string)$pedido['_id'];
 $estado = pedido_estado($pedido);
 $detalles = pedido_detalles($pedido);
@@ -28,10 +29,10 @@ layout_inicio(['titulo' => 'Pedido ' . pedido_numero($pedido), 'noindex' => true
                     </div>
                     <div><?= estado_badge($estado) ?></div>
                 </div>
-                <p class="mb-4"><?= e(estado_explicacion($estado)) ?></p>
+                <p class="mb-4"><?= e(!empty($pedido['cancelado_por_vencimiento']) ? 'Este pedido se canceló automáticamente porque el pago no se completó a tiempo. Los productos volvieron al inventario y no se realizó ningún cobro.' : estado_explicacion($estado)) ?></p>
 
                 <h2 class="h6 fw-bold">Productos del pedido</h2>
-                <div class="table-responsive">
+                <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
                     <table class="table align-middle tabla-apilable">
                         <thead><tr><th scope="col">Producto</th><th scope="col" class="text-center">Cantidad</th><th scope="col" class="text-end">Precio unitario</th><th scope="col" class="text-end">Subtotal</th></tr></thead>
                         <tbody>
@@ -54,9 +55,10 @@ layout_inicio(['titulo' => 'Pedido ' . pedido_numero($pedido), 'noindex' => true
             </div>
         </div>
         <div class="col-lg-4">
-            <aside class="cs-panel mb-4">
+            <section class="cs-panel mb-4">
                 <h2 class="cs-panel-titulo">Acciones</h2>
                 <div class="d-grid gap-2">
+                    <?php if ($vence = pedido_vence($pedido)): ?><p class="small text-secondary mb-1">Reservado hasta <?= e(fecha_local($vence)) ?></p><?php endif; ?>
                     <?php if (in_array($estado, [ESTADO_PENDIENTE, ESTADO_RECHAZADO], true)): ?>
                     <a href="<?= e(url('pago_pse.php', ['id' => $id])) ?>" class="btn btn-cs"><i class="bi bi-bank" aria-hidden="true"></i> Completar pago</a>
                     <?php endif; ?>
@@ -68,8 +70,8 @@ layout_inicio(['titulo' => 'Pedido ' . pedido_numero($pedido), 'noindex' => true
                     </form>
                     <a href="<?= e(url('mis_pedidos.php')) ?>" class="btn btn-link">⬅ Volver a mis pedidos</a>
                 </div>
-            </aside>
-            <aside class="cs-panel">
+            </section>
+            <section class="cs-panel">
                 <h2 class="cs-panel-titulo">Pago y seguimiento</h2>
                 <p class="small mb-1"><strong>Método:</strong> <?= e($pedido['metodo_pago'] ?? 'PSE (simulado)') ?></p>
                 <?php if (!empty($pedido['pago']['referencia'])): ?><p class="small mb-1"><strong>Referencia:</strong> <?= e($pedido['pago']['referencia']) ?></p><?php endif; ?>
@@ -81,7 +83,7 @@ layout_inicio(['titulo' => 'Pedido ' . pedido_numero($pedido), 'noindex' => true
                     <?php endforeach; ?>
                 </ul>
                 <?php endif; ?>
-            </aside>
+            </section>
         </div>
     </div>
 </section>

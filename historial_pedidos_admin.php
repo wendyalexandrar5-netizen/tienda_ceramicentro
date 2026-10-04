@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/pedidos.php';
 require_once __DIR__ . '/includes/filtros_pedidos.php';
 requerir_sesion('administrador');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 if (es_post()) {
     csrf_verificar();
@@ -83,8 +84,8 @@ admin_inicio('Pedidos', 'pedidos', ['acciones' => boton_exportar('exportar_pedid
             </div>
         </div>
         <details>
-            <summary class="small fw-semibold mb-2" style="cursor:pointer"><?= count($lineas) ?> producto(s) — ver detalle</summary>
-            <div class="table-responsive">
+            <summary class="small fw-semibold mb-2" style="cursor:pointer"><?= count($lineas) ?> producto(s) — ver detalle<?= !empty($p['notas_admin']) ? ' · 📝 con notas' : '' ?></summary>
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
                 <table class="table table-sm align-middle tabla-apilable">
                     <thead><tr><th scope="col">Producto</th><th scope="col" class="text-center">Cantidad</th><th scope="col" class="text-end">Precio unitario</th><th scope="col" class="text-end">Subtotal</th></tr></thead>
                     <tbody>
@@ -109,7 +110,8 @@ admin_inicio('Pedidos', 'pedidos', ['acciones' => boton_exportar('exportar_pedid
                 </div>
                 <button type="submit" class="btn btn-sm btn-cs" data-cargando="Guardando…">Actualizar</button>
             </form>
-            <a href="<?= e(url('admin_pedido_pdf.php', ['id' => $pid])) ?>" class="btn btn-sm btn-outline-danger ms-md-auto" target="_blank" rel="noopener" data-descarga="pdf"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Comprobante PDF</a>
+            <a href="<?= e(url('admin_pedido.php', ['id' => $pid])) ?>" class="btn btn-sm btn-outline-cs ms-md-auto"><i class="bi bi-gear" aria-hidden="true"></i> Gestionar</a>
+            <a href="<?= e(url('admin_pedido_pdf.php', ['id' => $pid])) ?>" class="btn btn-sm btn-outline-danger" target="_blank" rel="noopener" data-descarga="pdf"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Comprobante PDF</a>
         </div>
     </article>
 <?php endforeach; ?>

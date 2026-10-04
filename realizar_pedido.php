@@ -9,6 +9,7 @@ require_once __DIR__ . '/includes/tienda.php';
 require_once __DIR__ . '/includes/pedidos.php';
 require_once __DIR__ . '/includes/pasos_compra.php';
 requerir_sesion('cliente');
+liberar_pedidos_vencidos(); // devuelve el inventario de pedidos sin pagar cuya reserva venció
 
 $usuario = usuario_actual();
 $resumen = carrito_resumen();
@@ -64,7 +65,7 @@ $itemsAnalitica = array_map(fn($i) => ['item_id' => $i['id'], 'item_name' => $i[
         <div class="col-lg-8">
             <div class="cs-panel">
                 <h2 class="cs-panel-titulo">Productos que vas a comprar</h2>
-                <div class="table-responsive">
+                <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla (desplazable horizontalmente)">
                     <table class="table align-middle tabla-apilable mb-0">
                         <caption class="visually-hidden">Detalle del pedido</caption>
                         <thead><tr><th scope="col">Producto</th><th scope="col" class="text-center">Cantidad</th><th scope="col" class="text-end">Precio unitario</th><th scope="col" class="text-end">Subtotal</th></tr></thead>
@@ -89,7 +90,7 @@ $itemsAnalitica = array_map(fn($i) => ['item_id' => $i['id'], 'item_name' => $i[
             </div>
         </div>
         <div class="col-lg-4">
-            <aside class="cs-panel resumen-compra">
+            <section class="cs-panel resumen-compra">
                 <h2 class="cs-panel-titulo">Total del pedido</h2>
                 <p class="d-flex justify-content-between mb-1"><span>Base (sin IVA)</span><span><?= e(dinero($resumen['total'] / 1.19)) ?></span></p>
                 <p class="d-flex justify-content-between mb-1"><span>IVA 19 %</span><span><?= e(dinero($resumen['total'] - $resumen['total'] / 1.19)) ?></span></p>
@@ -101,7 +102,7 @@ $itemsAnalitica = array_map(fn($i) => ['item_id' => $i['id'], 'item_name' => $i[
                     <button type="submit" class="btn btn-cs btn-lg w-100" data-cargando="Registrando pedido…"><i class="bi bi-bank" aria-hidden="true"></i> Confirmar y pagar con PSE</button>
                 </form>
                 <p class="small text-secondary mt-3 mb-0">Al confirmar, reservamos los productos y pasas al <strong>simulador de PSE</strong>. Es una simulación: no se realiza ningún cobro real ni se piden datos bancarios.</p>
-            </aside>
+            </section>
         </div>
     </div>
 </section>
