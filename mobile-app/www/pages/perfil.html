@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c62828">
+    <title>Mi perfil | CERAMISHOP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<header class="topbar"><a href="../home.html" class="topbar-volver" aria-label="Volver">‹</a><h1>Mi perfil</h1></header>
+<main class="perfil-container">
+    <div class="perfil-card">
+        <div class="perfil-avatar" aria-hidden="true">👤</div>
+        <h2 id="nombreUsuario">Usuario</h2>
+        <p id="correoUsuario"></p>
+        <span id="rolUsuario" class="perfil-rol">Cliente</span>
+        <a href="pedidos.html" class="btn-secundario-app enlace-boton">📦 Mis pedidos</a>
+        <a id="btnWhatsapp" class="btn-whatsapp enlace-boton" target="_blank" rel="noopener">💬 Escríbenos por WhatsApp</a>
+        <button type="button" id="btnCerrarSesion" class="perfil-btn">Cerrar sesión</button>
+    </div>
+</main>
+<nav class="bottom-nav" aria-label="Navegación principal">
+    <a href="../home.html"><span aria-hidden="true">🏠</span><small>Inicio</small></a>
+    <a href="favoritos.html"><span aria-hidden="true">❤️</span><small>Favoritos</small></a>
+    <a href="carrito.html" class="nav-carrito"><span aria-hidden="true">🛒</span><small>Carrito</small><b class="nav-badge" data-badge-carrito hidden>0</b></a>
+    <a href="pedidos.html"><span aria-hidden="true">📦</span><small>Pedidos</small></a>
+    <a href="perfil.html"><span aria-hidden="true">👤</span><small>Perfil</small></a>
+</nav>
+
+<script src="../js/config.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/util.js"></script>
+<script src="../js/perfil.js"></script>
+</body>
+</html>

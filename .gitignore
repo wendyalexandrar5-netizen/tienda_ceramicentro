@@ -1,0 +1,17 @@
+# Dependencias de Composer (instalar con: composer install)
+/vendor/
+
+# Configuración local con credenciales (copiar desde config/config.example.php)
+/config/config.php
+
+# Logs de la aplicación
+/logs/*
+!/logs/.htaccess
+
+# Node / Capacitor
+node_modules/
+mobile-app/node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db

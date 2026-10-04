@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c62828">
+    <title>Crear cuenta | CERAMISHOP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<main class="login-container">
+    <div class="login-card">
+        <h1>Crear cuenta</h1>
+        <p>Regístrate para comprar en CERAMISHOP</p>
+        <div id="mensaje" role="alert" class="mensaje-error" hidden></div>
+        <form id="registroForm" novalidate>
+            <label for="nombre" class="campo-label">Nombre completo</label>
+            <input type="text" id="nombre" autocomplete="name" minlength="3" maxlength="50" required>
+            <label for="correo" class="campo-label">Correo electrónico</label>
+            <input type="email" id="correo" autocomplete="email" inputmode="email" required>
+            <label for="password" class="campo-label">Contraseña</label>
+            <input type="password" id="password" autocomplete="new-password" minlength="8" required aria-describedby="ayudaClave">
+            <small id="ayudaClave" class="ayuda">Mínimo 8 caracteres, con letras y números.</small>
+            <label for="confirmar" class="campo-label">Confirmar contraseña</label>
+            <input type="password" id="confirmar" autocomplete="new-password" required>
+            <label class="check"><input type="checkbox" id="acepto" required> Acepto los términos y la política de privacidad de CERAMICENTRO.</label>
+            <button type="submit" id="btnRegistro" class="btn-principal">Registrarme</button>
+        </form>
+        <p class="login-link">¿Ya tienes cuenta? <a href="login.html">Iniciar sesión</a></p>
+    </div>
+</main>
+
+<script src="../js/config.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/util.js"></script>
+<script src="../js/registro.js"></script>
+</body>
+</html>

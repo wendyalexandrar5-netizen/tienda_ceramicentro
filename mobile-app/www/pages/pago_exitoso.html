@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c62828">
+    <title>Pago exitoso | CERAMISHOP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<main class="login-container">
+    <div class="login-card success-card">
+        <div class="success-icon" aria-hidden="true">✅</div>
+        <h1>¡Pago exitoso!</h1>
+        <p>Tu pedido fue registrado y el pago simulado fue aprobado.</p>
+        <dl class="success-info">
+            <dt>Pedido</dt><dd id="pedidoNumero">—</dd>
+            <dt>Fecha</dt><dd id="pedidoFecha">—</dd>
+            <dt>Estado</dt><dd><span class="estado-badge estado-ok" id="pedidoEstado">Pagado</span></dd>
+            <dt>Referencia (simulada)</dt><dd id="pedidoRef">—</dd>
+            <dt>Total pagado</dt><dd id="totalPedido" class="total-destacado">$0</dd>
+        </dl>
+        <p class="nota">Puedes ver el estado de tu pedido en «Mis pedidos» y descargar tu comprobante en PDF.</p>
+        <button type="button" id="btnComprobante" class="btn-pdf">📄 Descargar comprobante</button>
+        <a href="pedidos.html" class="btn-principal enlace-boton">Ver mis pedidos</a>
+        <a href="../home.html" class="btn-texto">Seguir comprando</a>
+    </div>
+</main>
+
+<script src="../js/config.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/util.js"></script>
+<script src="../js/pago_exitoso.js"></script>
+</body>
+</html>
