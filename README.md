@@ -15,7 +15,7 @@ Navegador web ───────────────────┘
 ## 1. Instalación (XAMPP / Apache local)
 
 1. Copie el proyecto en la carpeta de Apache, por ejemplo `htdocs/tiendaonline_mongodb/`.
-2. Habilite en PHP la extensión **mongodb** (y **gd** para optimizar imágenes).
+2. En `C:\xampp\php\php.ini` habilite (sin `;` al inicio): `extension=mongodb`, `extension=zip`, `extension=gd`, `extension=fileinfo`, `extension=curl`. Las dependencias están fijadas para PHP 8.2 y la extensión MongoDB 1.16 (XAMPP 8.2); también funcionan con versiones más nuevas.
 3. Instale dependencias: `composer install`
    (MongoDB, PhpSpreadsheet para Excel, TCPDF para PDF y PHPMailer para el contacto).
 4. Copie `config/config.example.php` como `config/config.php` y ajuste los valores
