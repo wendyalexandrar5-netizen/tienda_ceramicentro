@@ -1,0 +1,345 @@
+id,pedido_id,producto_id,variante_id,nombre_producto,talla,color,cantidad,precio_unitario,costo_unitario,subtotal
+1,201,1,2,Camiseta básica,M,Negro,2,49900.0,30540.18,99800.0
+2,201,9,51,Sudadera clásica,M,Gris,1,129900.0,68908.08,129900.0
+3,202,6,36,Pantalón cargo,M,Negro,1,119900.0,55534.0,119900.0
+4,203,15,83,Conjunto deportivo,M,Blanco,1,119900.0,50770.36,119900.0
+5,203,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+6,204,14,80,Chaqueta Oso bicolor,M,Blanco,1,159900.0,81331.98,159900.0
+7,205,10,59,Sudadera Smile Graffiti,M,Blanco,1,139900.0,77112.62,139900.0
+8,206,3,18,Camiseta béisbol NY,M,Blanco,2,79900.0,36220.5,159800.0
+9,207,12,66,Buzo cuello redondo,M,Beige,1,109900.0,61012.68,109900.0
+10,207,4,22,Polo acanalado,L,Blanco,1,69900.0,31064.0,69900.0
+11,208,13,77,Chaqueta urbana,L,Beige,1,169900.0,85968.34,169900.0
+12,208,2,13,Camiseta oversize,M,Negro,1,64900.0,38762.68,64900.0
+13,1,15,84,Conjunto deportivo,L,Blanco,1,119900.0,50770.36,119900.0
+14,1,18,93,Conjunto geométrico,L,Naranja,1,134900.0,67692.68,134900.0
+15,1,6,35,Pantalón cargo,S,Negro,1,119900.0,55534.0,119900.0
+16,2,18,93,Conjunto geométrico,L,Naranja,1,134900.0,67692.68,134900.0
+17,3,1,4,Camiseta básica,XL,Negro,2,49900.0,30540.18,99800.0
+18,4,10,58,Sudadera Smile Graffiti,S,Blanco,1,139900.0,77112.62,139900.0
+19,5,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+20,5,5,34,Camisa bicolor,XL,Negro,1,74900.0,40266.5,74900.0
+21,6,9,55,Sudadera clásica,M,Negro,1,129900.0,68908.08,129900.0
+22,7,1,3,Camiseta básica,L,Negro,2,49900.0,30540.18,99800.0
+23,8,15,84,Conjunto deportivo,L,Blanco,2,119900.0,50770.36,239800.0
+24,9,8,46,Short deportivo Colorado,S,Blanco,1,59900.0,22930.18,59900.0
+25,10,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+26,11,16,87,Conjunto texturizado,L,Blanco,1,139900.0,67414.5,139900.0
+27,12,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+28,12,7,45,Jogger Skull,L,Gris,1,99900.0,56892.15,99900.0
+29,13,1,7,Camiseta básica,L,Blanco,1,49900.0,30540.18,49900.0
+30,13,14,79,Chaqueta Oso bicolor,S,Blanco,1,159900.0,81331.98,159900.0
+31,14,17,91,Conjunto tropical,L,Beige,1,129900.0,67692.68,129900.0
+32,14,11,61,Sudadera bicolor Fanstore,M,Rojo,2,149900.0,77471.89,299800.0
+33,15,11,61,Sudadera bicolor Fanstore,M,Rojo,1,149900.0,77471.89,149900.0
+34,15,5,34,Camisa bicolor,XL,Negro,1,74900.0,40266.5,74900.0
+35,15,12,65,Buzo cuello redondo,S,Beige,1,109900.0,61012.68,109900.0
+36,16,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+37,16,16,88,Conjunto texturizado,XL,Blanco,1,139900.0,67414.5,139900.0
+38,17,12,69,Buzo cuello redondo,S,Gris,1,109900.0,61012.68,109900.0
+39,18,14,79,Chaqueta Oso bicolor,S,Blanco,2,159900.0,81331.98,319800.0
+40,19,9,56,Sudadera clásica,L,Negro,2,129900.0,68908.08,259800.0
+41,20,3,18,Camiseta béisbol NY,M,Blanco,1,79900.0,36220.5,79900.0
+42,21,8,49,Short deportivo Colorado,XL,Blanco,1,59900.0,22930.18,59900.0
+43,22,8,49,Short deportivo Colorado,XL,Blanco,1,59900.0,22930.18,59900.0
+44,23,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+45,23,17,89,Conjunto tropical,S,Beige,2,129900.0,67692.68,259800.0
+46,24,14,79,Chaqueta Oso bicolor,S,Blanco,1,159900.0,81331.98,159900.0
+47,24,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+48,25,9,50,Sudadera clásica,S,Gris,2,129900.0,68908.08,259800.0
+49,25,15,83,Conjunto deportivo,M,Blanco,1,119900.0,50770.36,119900.0
+50,26,8,47,Short deportivo Colorado,M,Blanco,1,59900.0,22930.18,59900.0
+51,26,2,9,Camiseta oversize,M,Blanco,1,64900.0,38762.68,64900.0
+52,27,2,14,Camiseta oversize,L,Negro,1,64900.0,38762.68,64900.0
+53,27,17,91,Conjunto tropical,L,Beige,1,129900.0,67692.68,129900.0
+54,28,3,19,Camiseta béisbol NY,L,Blanco,1,79900.0,36220.5,79900.0
+55,29,2,9,Camiseta oversize,M,Blanco,1,64900.0,38762.68,64900.0
+56,30,9,50,Sudadera clásica,S,Gris,2,129900.0,68908.08,259800.0
+57,31,1,8,Camiseta básica,XL,Blanco,2,49900.0,30540.18,99800.0
+58,32,9,55,Sudadera clásica,M,Negro,2,129900.0,68908.08,259800.0
+59,33,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+60,33,5,34,Camisa bicolor,XL,Negro,1,74900.0,40266.5,74900.0
+61,33,7,45,Jogger Skull,L,Gris,2,99900.0,56892.15,199800.0
+62,34,6,41,Pantalón cargo,L,Gris,1,119900.0,55534.0,119900.0
+63,34,7,45,Jogger Skull,L,Gris,2,99900.0,56892.15,199800.0
+64,35,16,88,Conjunto texturizado,XL,Blanco,1,139900.0,67414.5,139900.0
+65,35,9,53,Sudadera clásica,XL,Gris,2,129900.0,68908.08,259800.0
+66,36,3,18,Camiseta béisbol NY,M,Blanco,1,79900.0,36220.5,79900.0
+67,37,3,17,Camiseta béisbol NY,S,Blanco,1,79900.0,36220.5,79900.0
+68,37,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+69,38,1,6,Camiseta básica,M,Blanco,1,49900.0,30540.18,49900.0
+70,39,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+71,39,13,77,Chaqueta urbana,L,Beige,1,169900.0,85968.34,169900.0
+72,39,5,32,Camisa bicolor,M,Negro,1,74900.0,40266.5,74900.0
+73,40,7,43,Jogger Skull,S,Gris,1,99900.0,56892.15,99900.0
+74,41,2,13,Camiseta oversize,M,Negro,2,64900.0,38762.68,129800.0
+75,42,1,1,Camiseta básica,S,Negro,1,49900.0,30540.18,49900.0
+76,43,10,58,Sudadera Smile Graffiti,S,Blanco,1,139900.0,77112.62,139900.0
+77,43,11,62,Sudadera bicolor Fanstore,L,Rojo,1,149900.0,77471.89,149900.0
+78,43,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+79,44,6,38,Pantalón cargo,XL,Negro,1,119900.0,55534.0,119900.0
+80,45,3,17,Camiseta béisbol NY,S,Blanco,1,79900.0,36220.5,79900.0
+81,45,6,38,Pantalón cargo,XL,Negro,1,119900.0,55534.0,119900.0
+82,46,15,84,Conjunto deportivo,L,Blanco,1,119900.0,50770.36,119900.0
+83,46,13,78,Chaqueta urbana,XL,Beige,1,169900.0,85968.34,169900.0
+84,47,17,89,Conjunto tropical,S,Beige,2,129900.0,67692.68,259800.0
+85,47,1,1,Camiseta básica,S,Negro,1,49900.0,30540.18,49900.0
+86,48,7,44,Jogger Skull,M,Gris,1,99900.0,56892.15,99900.0
+87,49,12,69,Buzo cuello redondo,S,Gris,1,109900.0,61012.68,109900.0
+88,50,1,8,Camiseta básica,XL,Blanco,1,49900.0,30540.18,49900.0
+89,51,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+90,52,3,18,Camiseta béisbol NY,M,Blanco,1,79900.0,36220.5,79900.0
+91,52,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+92,52,7,44,Jogger Skull,M,Gris,1,99900.0,56892.15,99900.0
+93,53,3,19,Camiseta béisbol NY,L,Blanco,1,79900.0,36220.5,79900.0
+94,54,2,14,Camiseta oversize,L,Negro,1,64900.0,38762.68,64900.0
+95,55,7,43,Jogger Skull,S,Gris,1,99900.0,56892.15,99900.0
+96,55,1,2,Camiseta básica,M,Negro,1,49900.0,30540.18,49900.0
+97,56,2,13,Camiseta oversize,M,Negro,2,64900.0,38762.68,129800.0
+98,57,4,20,Polo acanalado,S,Blanco,1,69900.0,31064.0,69900.0
+99,58,14,81,Chaqueta Oso bicolor,L,Blanco,1,159900.0,81331.98,159900.0
+100,59,20,97,Gorro Alien,Única,Blanco,2,34900.0,9986.0,69800.0
+101,60,6,36,Pantalón cargo,M,Negro,1,119900.0,55534.0,119900.0
+102,60,9,55,Sudadera clásica,M,Negro,1,129900.0,68908.08,129900.0
+103,61,12,68,Buzo cuello redondo,XS,Gris,1,109900.0,61012.68,109900.0
+104,61,19,96,Gorro Street,Única,Gris,2,39900.0,9986.0,79800.0
+105,62,9,53,Sudadera clásica,XL,Gris,1,129900.0,68908.08,129900.0
+106,62,1,6,Camiseta básica,M,Blanco,1,49900.0,30540.18,49900.0
+107,63,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+108,63,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+109,63,18,93,Conjunto geométrico,L,Naranja,1,134900.0,67692.68,134900.0
+110,64,3,17,Camiseta béisbol NY,S,Blanco,1,79900.0,36220.5,79900.0
+111,65,13,77,Chaqueta urbana,L,Beige,1,169900.0,85968.34,169900.0
+112,66,1,7,Camiseta básica,L,Blanco,1,49900.0,30540.18,49900.0
+113,67,7,44,Jogger Skull,M,Gris,1,99900.0,56892.15,99900.0
+114,67,19,96,Gorro Street,Única,Gris,2,39900.0,9986.0,79800.0
+115,67,13,78,Chaqueta urbana,XL,Beige,1,169900.0,85968.34,169900.0
+116,68,19,94,Gorro Street,Única,Negro,2,39900.0,9986.0,79800.0
+117,68,8,47,Short deportivo Colorado,M,Blanco,1,59900.0,22930.18,59900.0
+118,69,17,89,Conjunto tropical,S,Beige,1,129900.0,67692.68,129900.0
+119,69,15,84,Conjunto deportivo,L,Blanco,2,119900.0,50770.36,239800.0
+120,69,8,47,Short deportivo Colorado,M,Blanco,1,59900.0,22930.18,59900.0
+121,70,5,32,Camisa bicolor,M,Negro,1,74900.0,40266.5,74900.0
+122,70,3,17,Camiseta béisbol NY,S,Blanco,1,79900.0,36220.5,79900.0
+123,71,12,65,Buzo cuello redondo,S,Beige,1,109900.0,61012.68,109900.0
+124,72,11,62,Sudadera bicolor Fanstore,L,Rojo,2,149900.0,77471.89,299800.0
+125,73,11,63,Sudadera bicolor Fanstore,XL,Rojo,1,149900.0,77471.89,149900.0
+126,73,4,22,Polo acanalado,L,Blanco,2,69900.0,31064.0,139800.0
+127,74,4,20,Polo acanalado,S,Blanco,1,69900.0,31064.0,69900.0
+128,75,9,56,Sudadera clásica,L,Negro,1,129900.0,68908.08,129900.0
+129,76,12,72,Buzo cuello redondo,XS,Negro,1,109900.0,61012.68,109900.0
+130,76,1,7,Camiseta básica,L,Blanco,2,49900.0,30540.18,99800.0
+131,77,17,89,Conjunto tropical,S,Beige,1,129900.0,67692.68,129900.0
+132,77,13,76,Chaqueta urbana,M,Beige,1,169900.0,85968.34,169900.0
+133,78,13,77,Chaqueta urbana,L,Beige,1,169900.0,85968.34,169900.0
+134,78,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+135,78,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+136,79,9,54,Sudadera clásica,S,Negro,1,129900.0,68908.08,129900.0
+137,79,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+138,80,12,68,Buzo cuello redondo,XS,Gris,1,109900.0,61012.68,109900.0
+139,80,1,3,Camiseta básica,L,Negro,1,49900.0,30540.18,49900.0
+140,80,9,51,Sudadera clásica,M,Gris,1,129900.0,68908.08,129900.0
+141,81,13,76,Chaqueta urbana,M,Beige,1,169900.0,85968.34,169900.0
+142,82,11,61,Sudadera bicolor Fanstore,M,Rojo,2,149900.0,77471.89,299800.0
+143,82,14,79,Chaqueta Oso bicolor,S,Blanco,1,159900.0,81331.98,159900.0
+144,83,9,56,Sudadera clásica,L,Negro,1,129900.0,68908.08,129900.0
+145,83,13,78,Chaqueta urbana,XL,Beige,2,169900.0,85968.34,339800.0
+146,84,7,44,Jogger Skull,M,Gris,1,99900.0,56892.15,99900.0
+147,85,19,95,Gorro Street,Única,Blanco,2,39900.0,9986.0,79800.0
+148,85,1,4,Camiseta básica,XL,Negro,1,49900.0,30540.18,49900.0
+149,86,3,18,Camiseta béisbol NY,M,Blanco,1,79900.0,36220.5,79900.0
+150,87,15,82,Conjunto deportivo,S,Blanco,1,119900.0,50770.36,119900.0
+151,87,14,81,Chaqueta Oso bicolor,L,Blanco,1,159900.0,81331.98,159900.0
+152,88,1,2,Camiseta básica,M,Negro,1,49900.0,30540.18,49900.0
+153,89,9,51,Sudadera clásica,M,Gris,1,129900.0,68908.08,129900.0
+154,89,18,93,Conjunto geométrico,L,Naranja,1,134900.0,67692.68,134900.0
+155,90,17,89,Conjunto tropical,S,Beige,2,129900.0,67692.68,259800.0
+156,91,10,58,Sudadera Smile Graffiti,S,Blanco,1,139900.0,77112.62,139900.0
+157,92,4,21,Polo acanalado,M,Blanco,1,69900.0,31064.0,69900.0
+158,93,7,43,Jogger Skull,S,Gris,1,99900.0,56892.15,99900.0
+159,94,1,8,Camiseta básica,XL,Blanco,1,49900.0,30540.18,49900.0
+160,95,9,55,Sudadera clásica,M,Negro,1,129900.0,68908.08,129900.0
+161,96,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+162,97,10,60,Sudadera Smile Graffiti,L,Blanco,1,139900.0,77112.62,139900.0
+163,98,3,18,Camiseta béisbol NY,M,Blanco,1,79900.0,36220.5,79900.0
+164,98,13,76,Chaqueta urbana,M,Beige,1,169900.0,85968.34,169900.0
+165,99,15,85,Conjunto deportivo,XL,Blanco,1,119900.0,50770.36,119900.0
+166,100,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+167,100,3,18,Camiseta béisbol NY,M,Blanco,1,79900.0,36220.5,79900.0
+168,101,15,83,Conjunto deportivo,M,Blanco,1,119900.0,50770.36,119900.0
+169,101,2,10,Camiseta oversize,L,Blanco,1,64900.0,38762.68,64900.0
+170,102,6,35,Pantalón cargo,S,Negro,1,119900.0,55534.0,119900.0
+171,102,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+172,103,12,72,Buzo cuello redondo,XS,Negro,1,109900.0,61012.68,109900.0
+173,103,2,13,Camiseta oversize,M,Negro,1,64900.0,38762.68,64900.0
+174,104,17,91,Conjunto tropical,L,Beige,1,129900.0,67692.68,129900.0
+175,105,7,43,Jogger Skull,S,Gris,2,99900.0,56892.15,199800.0
+176,106,4,21,Polo acanalado,M,Blanco,1,69900.0,31064.0,69900.0
+177,107,9,51,Sudadera clásica,M,Gris,1,129900.0,68908.08,129900.0
+178,107,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+179,108,9,51,Sudadera clásica,M,Gris,1,129900.0,68908.08,129900.0
+180,109,16,86,Conjunto texturizado,M,Blanco,1,139900.0,67414.5,139900.0
+181,109,1,8,Camiseta básica,XL,Blanco,1,49900.0,30540.18,49900.0
+182,110,10,60,Sudadera Smile Graffiti,L,Blanco,2,139900.0,77112.62,279800.0
+183,110,15,85,Conjunto deportivo,XL,Blanco,1,119900.0,50770.36,119900.0
+184,111,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+185,112,6,40,Pantalón cargo,M,Gris,1,119900.0,55534.0,119900.0
+186,112,10,60,Sudadera Smile Graffiti,L,Blanco,1,139900.0,77112.62,139900.0
+187,113,13,78,Chaqueta urbana,XL,Beige,1,169900.0,85968.34,169900.0
+188,114,13,76,Chaqueta urbana,M,Beige,2,169900.0,85968.34,339800.0
+189,115,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+190,115,1,2,Camiseta básica,M,Negro,1,49900.0,30540.18,49900.0
+191,115,15,85,Conjunto deportivo,XL,Blanco,1,119900.0,50770.36,119900.0
+192,116,13,77,Chaqueta urbana,L,Beige,2,169900.0,85968.34,339800.0
+193,117,17,90,Conjunto tropical,M,Beige,2,129900.0,67692.68,259800.0
+194,118,15,85,Conjunto deportivo,XL,Blanco,2,119900.0,50770.36,239800.0
+195,118,8,47,Short deportivo Colorado,M,Blanco,1,59900.0,22930.18,59900.0
+196,119,15,82,Conjunto deportivo,S,Blanco,1,119900.0,50770.36,119900.0
+197,120,17,90,Conjunto tropical,M,Beige,1,129900.0,67692.68,129900.0
+198,121,15,84,Conjunto deportivo,L,Blanco,1,119900.0,50770.36,119900.0
+199,121,1,7,Camiseta básica,L,Blanco,2,49900.0,30540.18,99800.0
+200,121,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+201,122,9,54,Sudadera clásica,S,Negro,1,129900.0,68908.08,129900.0
+202,122,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+203,123,11,61,Sudadera bicolor Fanstore,M,Rojo,1,149900.0,77471.89,149900.0
+204,123,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+205,124,12,69,Buzo cuello redondo,S,Gris,1,109900.0,61012.68,109900.0
+206,125,2,12,Camiseta oversize,XXL,Blanco,1,64900.0,38762.68,64900.0
+207,126,3,19,Camiseta béisbol NY,L,Blanco,1,79900.0,36220.5,79900.0
+208,126,6,39,Pantalón cargo,S,Gris,1,119900.0,55534.0,119900.0
+209,126,13,77,Chaqueta urbana,L,Beige,2,169900.0,85968.34,339800.0
+210,127,14,79,Chaqueta Oso bicolor,S,Blanco,1,159900.0,81331.98,159900.0
+211,127,9,50,Sudadera clásica,S,Gris,1,129900.0,68908.08,129900.0
+212,127,5,32,Camisa bicolor,M,Negro,1,74900.0,40266.5,74900.0
+213,128,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+214,129,18,93,Conjunto geométrico,L,Naranja,1,134900.0,67692.68,134900.0
+215,130,9,52,Sudadera clásica,L,Gris,2,129900.0,68908.08,259800.0
+216,131,12,65,Buzo cuello redondo,S,Beige,1,109900.0,61012.68,109900.0
+217,131,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+218,132,1,2,Camiseta básica,M,Negro,1,49900.0,30540.18,49900.0
+219,133,14,81,Chaqueta Oso bicolor,L,Blanco,1,159900.0,81331.98,159900.0
+220,133,10,60,Sudadera Smile Graffiti,L,Blanco,1,139900.0,77112.62,139900.0
+221,134,1,8,Camiseta básica,XL,Blanco,1,49900.0,30540.18,49900.0
+222,135,12,67,Buzo cuello redondo,L,Beige,1,109900.0,61012.68,109900.0
+223,136,10,58,Sudadera Smile Graffiti,S,Blanco,2,139900.0,77112.62,279800.0
+224,136,1,1,Camiseta básica,S,Negro,1,49900.0,30540.18,49900.0
+225,137,1,4,Camiseta básica,XL,Negro,1,49900.0,30540.18,49900.0
+226,138,12,67,Buzo cuello redondo,L,Beige,2,109900.0,61012.68,219800.0
+227,138,11,63,Sudadera bicolor Fanstore,XL,Rojo,1,149900.0,77471.89,149900.0
+228,139,9,55,Sudadera clásica,M,Negro,1,129900.0,68908.08,129900.0
+229,140,1,6,Camiseta básica,M,Blanco,2,49900.0,30540.18,99800.0
+230,141,5,32,Camisa bicolor,M,Negro,1,74900.0,40266.5,74900.0
+231,141,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+232,142,12,73,Buzo cuello redondo,S,Negro,1,109900.0,61012.68,109900.0
+233,142,15,83,Conjunto deportivo,M,Blanco,1,119900.0,50770.36,119900.0
+234,143,9,56,Sudadera clásica,L,Negro,1,129900.0,68908.08,129900.0
+235,143,15,83,Conjunto deportivo,M,Blanco,1,119900.0,50770.36,119900.0
+236,144,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+237,145,6,38,Pantalón cargo,XL,Negro,1,119900.0,55534.0,119900.0
+238,146,11,63,Sudadera bicolor Fanstore,XL,Rojo,1,149900.0,77471.89,149900.0
+239,146,8,47,Short deportivo Colorado,M,Blanco,1,59900.0,22930.18,59900.0
+240,146,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+241,147,1,5,Camiseta básica,S,Blanco,1,49900.0,30540.18,49900.0
+242,147,6,42,Pantalón cargo,XL,Gris,1,119900.0,55534.0,119900.0
+243,148,13,78,Chaqueta urbana,XL,Beige,1,169900.0,85968.34,169900.0
+244,148,14,80,Chaqueta Oso bicolor,M,Blanco,1,159900.0,81331.98,159900.0
+245,149,4,25,Polo acanalado,M,Beige,1,69900.0,31064.0,69900.0
+246,150,8,48,Short deportivo Colorado,L,Blanco,2,59900.0,22930.18,119800.0
+247,150,19,95,Gorro Street,Única,Blanco,2,39900.0,9986.0,79800.0
+248,151,17,89,Conjunto tropical,S,Beige,2,129900.0,67692.68,259800.0
+249,151,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+250,152,14,80,Chaqueta Oso bicolor,M,Blanco,1,159900.0,81331.98,159900.0
+251,152,3,17,Camiseta béisbol NY,S,Blanco,2,79900.0,36220.5,159800.0
+252,153,1,3,Camiseta básica,L,Negro,1,49900.0,30540.18,49900.0
+253,154,17,90,Conjunto tropical,M,Beige,1,129900.0,67692.68,129900.0
+254,154,4,23,Polo acanalado,XL,Blanco,1,69900.0,31064.0,69900.0
+255,155,1,1,Camiseta básica,S,Negro,2,49900.0,30540.18,99800.0
+256,156,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+257,156,13,78,Chaqueta urbana,XL,Beige,1,169900.0,85968.34,169900.0
+258,157,6,37,Pantalón cargo,L,Negro,1,119900.0,55534.0,119900.0
+259,157,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+260,157,1,5,Camiseta básica,S,Blanco,1,49900.0,30540.18,49900.0
+261,158,14,79,Chaqueta Oso bicolor,S,Blanco,2,159900.0,81331.98,319800.0
+262,159,14,81,Chaqueta Oso bicolor,L,Blanco,1,159900.0,81331.98,159900.0
+263,160,7,45,Jogger Skull,L,Gris,2,99900.0,56892.15,199800.0
+264,160,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+265,161,4,24,Polo acanalado,S,Beige,1,69900.0,31064.0,69900.0
+266,161,10,58,Sudadera Smile Graffiti,S,Blanco,1,139900.0,77112.62,139900.0
+267,162,11,62,Sudadera bicolor Fanstore,L,Rojo,1,149900.0,77471.89,149900.0
+268,163,7,45,Jogger Skull,L,Gris,1,99900.0,56892.15,99900.0
+269,164,6,40,Pantalón cargo,M,Gris,1,119900.0,55534.0,119900.0
+270,165,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+271,166,17,90,Conjunto tropical,M,Beige,1,129900.0,67692.68,129900.0
+272,167,9,57,Sudadera clásica,XL,Negro,1,129900.0,68908.08,129900.0
+273,167,5,32,Camisa bicolor,M,Negro,1,74900.0,40266.5,74900.0
+274,168,9,55,Sudadera clásica,M,Negro,2,129900.0,68908.08,259800.0
+275,168,15,82,Conjunto deportivo,S,Blanco,1,119900.0,50770.36,119900.0
+276,169,17,90,Conjunto tropical,M,Beige,1,129900.0,67692.68,129900.0
+277,169,13,78,Chaqueta urbana,XL,Beige,1,169900.0,85968.34,169900.0
+278,170,9,54,Sudadera clásica,S,Negro,1,129900.0,68908.08,129900.0
+279,170,15,85,Conjunto deportivo,XL,Blanco,1,119900.0,50770.36,119900.0
+280,170,5,32,Camisa bicolor,M,Negro,1,74900.0,40266.5,74900.0
+281,171,11,62,Sudadera bicolor Fanstore,L,Rojo,1,149900.0,77471.89,149900.0
+282,171,7,43,Jogger Skull,S,Gris,1,99900.0,56892.15,99900.0
+283,172,11,63,Sudadera bicolor Fanstore,XL,Rojo,1,149900.0,77471.89,149900.0
+284,173,6,42,Pantalón cargo,XL,Gris,1,119900.0,55534.0,119900.0
+285,174,15,85,Conjunto deportivo,XL,Blanco,1,119900.0,50770.36,119900.0
+286,175,16,86,Conjunto texturizado,M,Blanco,1,139900.0,67414.5,139900.0
+287,176,10,58,Sudadera Smile Graffiti,S,Blanco,1,139900.0,77112.62,139900.0
+288,177,19,96,Gorro Street,Única,Gris,1,39900.0,9986.0,39900.0
+289,177,15,85,Conjunto deportivo,XL,Blanco,2,119900.0,50770.36,239800.0
+290,177,16,87,Conjunto texturizado,L,Blanco,1,139900.0,67414.5,139900.0
+291,178,1,4,Camiseta básica,XL,Negro,1,54900.0,30540.18,54900.0
+292,178,13,78,Chaqueta urbana,XL,Beige,2,169900.0,85968.34,339800.0
+293,179,9,56,Sudadera clásica,L,Negro,1,129900.0,68908.08,129900.0
+294,180,6,41,Pantalón cargo,L,Gris,2,119900.0,55534.0,239800.0
+295,180,12,70,Buzo cuello redondo,M,Gris,2,109900.0,61012.68,219800.0
+296,180,2,11,Camiseta oversize,XL,Blanco,1,64900.0,38762.68,64900.0
+297,181,15,85,Conjunto deportivo,XL,Blanco,1,119900.0,50770.36,119900.0
+298,182,6,38,Pantalón cargo,XL,Negro,2,119900.0,55534.0,239800.0
+299,183,2,11,Camiseta oversize,XL,Blanco,1,64900.0,38762.68,64900.0
+300,184,12,68,Buzo cuello redondo,XS,Gris,1,109900.0,61012.68,109900.0
+301,185,19,96,Gorro Street,Única,Gris,2,39900.0,9986.0,79800.0
+302,185,17,90,Conjunto tropical,M,Beige,1,129900.0,67692.68,129900.0
+303,186,11,63,Sudadera bicolor Fanstore,XL,Rojo,1,149900.0,77471.89,149900.0
+304,187,1,8,Camiseta básica,XL,Blanco,1,54900.0,30540.18,54900.0
+305,187,8,46,Short deportivo Colorado,S,Blanco,2,59900.0,22930.18,119800.0
+306,188,9,56,Sudadera clásica,L,Negro,1,129900.0,68908.08,129900.0
+307,189,3,19,Camiseta béisbol NY,L,Blanco,1,79900.0,36220.5,79900.0
+308,189,10,58,Sudadera Smile Graffiti,S,Blanco,2,139900.0,77112.62,279800.0
+309,190,8,46,Short deportivo Colorado,S,Blanco,1,59900.0,22930.18,59900.0
+310,191,11,61,Sudadera bicolor Fanstore,M,Rojo,2,149900.0,77471.89,299800.0
+311,192,1,8,Camiseta básica,XL,Blanco,1,54900.0,30540.18,54900.0
+312,193,20,97,Gorro Alien,Única,Blanco,2,34900.0,9986.0,69800.0
+313,194,1,1,Camiseta básica,S,Negro,1,54900.0,30540.18,54900.0
+314,195,12,73,Buzo cuello redondo,S,Negro,1,109900.0,61012.68,109900.0
+315,196,7,44,Jogger Skull,M,Gris,1,99900.0,56892.15,99900.0
+316,197,18,92,Conjunto geométrico,M,Naranja,1,134900.0,67692.68,134900.0
+317,197,16,87,Conjunto texturizado,L,Blanco,1,139900.0,67414.5,139900.0
+318,198,4,27,Polo acanalado,XL,Beige,1,69900.0,31064.0,69900.0
+319,199,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+320,200,2,16,Camiseta oversize,XXL,Negro,1,64900.0,38762.68,64900.0
+321,209,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+322,209,16,87,Conjunto texturizado,L,Blanco,1,139900.0,67414.5,139900.0
+323,209,14,81,Chaqueta Oso bicolor,L,Blanco,1,159900.0,81331.98,159900.0
+324,209,4,22,Polo acanalado,L,Blanco,1,69900.0,31064.0,69900.0
+325,210,18,92,Conjunto geométrico,M,Naranja,1,134900.0,67692.68,134900.0
+326,210,13,77,Chaqueta urbana,L,Beige,1,169900.0,85968.34,169900.0
+327,210,5,33,Camisa bicolor,L,Negro,1,74900.0,40266.5,74900.0
+328,211,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+329,212,13,76,Chaqueta urbana,M,Beige,1,169900.0,85968.34,169900.0
+330,212,17,90,Conjunto tropical,M,Beige,1,129900.0,67692.68,129900.0
+331,213,10,60,Sudadera Smile Graffiti,L,Blanco,1,139900.0,77112.62,139900.0
+332,213,6,37,Pantalón cargo,L,Negro,1,119900.0,55534.0,119900.0
+333,214,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+334,214,2,9,Camiseta oversize,M,Blanco,1,64900.0,38762.68,64900.0
+335,215,13,77,Chaqueta urbana,L,Beige,2,169900.0,85968.34,339800.0
+336,216,20,97,Gorro Alien,Única,Blanco,1,34900.0,9986.0,34900.0
+337,216,11,62,Sudadera bicolor Fanstore,L,Rojo,1,149900.0,77471.89,149900.0
+338,216,7,45,Jogger Skull,L,Gris,1,99900.0,56892.15,99900.0
+339,217,23,120,"Set Streetwear ""New York 90"" (Camiseta Oversize + Jean Wide Leg Desgastado)",L,Negro,1,220000.0,,220000.0
+340,218,19,94,Gorro Street,Única,Negro,1,39900.0,9986.0,39900.0
+341,218,11,61,Sudadera bicolor Fanstore,M,Rojo,1,149900.0,77471.89,149900.0
+342,219,19,95,Gorro Street,Única,Blanco,1,39900.0,9986.0,39900.0
+343,219,11,61,Sudadera bicolor Fanstore,M,Rojo,1,149900.0,77471.89,149900.0
+344,220,23,113,"Set Streetwear ""New York 90"" (Camiseta Oversize + Jean Wide Leg Desgastado)",XS,Blanco,2,220000.0,,440000.0

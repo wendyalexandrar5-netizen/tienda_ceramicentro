@@ -1,0 +1,4 @@
+# El volcado SQL original contiene datos personales (correos, hashes de contraseñas): no se sube
+*.sql
+*.sql.zip
+__pycache__/

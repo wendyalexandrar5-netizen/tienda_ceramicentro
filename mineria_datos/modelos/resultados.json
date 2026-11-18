@@ -1,0 +1,841 @@
+{
+  "categorias": [
+    "Accesorios",
+    "Camisetas",
+    "Chaquetas",
+    "Conjuntos",
+    "Pantalones",
+    "Sudaderas"
+  ],
+  "dias_recompra": 7,
+  "fecha_corte": "2026-11-10 21:00:33",
+  "categoria": {
+    "tabla": [
+      {
+        "modelo": "Gradient Boosting",
+        "exactitud": 0.24875621890547264,
+        "f1_macro": 0.20878942945498147,
+        "kappa": 0.029606420053074012,
+        "exactitud_temporal": 0.1951219512195122
+      },
+      {
+        "modelo": "Regresión logística",
+        "exactitud": 0.26865671641791045,
+        "f1_macro": 0.17971193668443064,
+        "kappa": 0.0531021663889244,
+        "exactitud_temporal": 0.1951219512195122
+      },
+      {
+        "modelo": "Árbol de decisión (J48/C4.5)",
+        "exactitud": 0.21393034825870647,
+        "f1_macro": 0.17750998547567173,
+        "kappa": 0.0065069135956953295,
+        "exactitud_temporal": 0.24390243902439024
+      },
+      {
+        "modelo": "Híbrido (ML + Markov + preferencia)",
+        "exactitud": 0.263681592039801,
+        "f1_macro": 0.15728691598256817,
+        "kappa": 0.030378096479791283,
+        "exactitud_temporal": 0.1951219512195122
+      },
+      {
+        "modelo": "k-NN (IBk, k=7)",
+        "exactitud": 0.21890547263681592,
+        "f1_macro": 0.14923818871187292,
+        "kappa": 0.0031273692191052804,
+        "exactitud_temporal": 0.17073170731707318
+      },
+      {
+        "modelo": "Preferencia personal (moda)",
+        "exactitud": 0.1890547263681592,
+        "f1_macro": 0.13928588665357686,
+        "kappa": -0.009054790723459494,
+        "exactitud_temporal": 0.12195121951219512
+      },
+      {
+        "modelo": "Random Forest",
+        "exactitud": 0.24378109452736318,
+        "f1_macro": 0.13666072489601902,
+        "kappa": -0.01572525682369763,
+        "exactitud_temporal": 0.24390243902439024
+      },
+      {
+        "modelo": "Cadena de Markov",
+        "exactitud": 0.2736318407960199,
+        "f1_macro": 0.11459154189650643,
+        "kappa": 0.011985724867012215,
+        "exactitud_temporal": 0.2926829268292683
+      },
+      {
+        "modelo": "ZeroR (línea base)",
+        "exactitud": 0.29850746268656714,
+        "f1_macro": 0.07662835249042145,
+        "kappa": 0.0,
+        "exactitud_temporal": 0.2926829268292683
+      },
+      {
+        "modelo": "Naive Bayes",
+        "exactitud": 0.09950248756218906,
+        "f1_macro": 0.07464978425165779,
+        "kappa": -0.0075048463029629975,
+        "exactitud_temporal": 0.0975609756097561
+      }
+    ],
+    "matrices": {
+      "ZeroR (línea base)": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          10
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          43
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          30
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          30
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          28
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          60
+        ]
+      ],
+      "Naive Bayes": [
+        [
+          4,
+          0,
+          1,
+          2,
+          3,
+          0
+        ],
+        [
+          14,
+          0,
+          1,
+          1,
+          27,
+          0
+        ],
+        [
+          12,
+          0,
+          0,
+          3,
+          14,
+          1
+        ],
+        [
+          17,
+          0,
+          0,
+          4,
+          9,
+          0
+        ],
+        [
+          11,
+          2,
+          0,
+          3,
+          12,
+          0
+        ],
+        [
+          23,
+          1,
+          1,
+          6,
+          29,
+          0
+        ]
+      ],
+      "Árbol de decisión (J48/C4.5)": [
+        [
+          1,
+          2,
+          0,
+          2,
+          3,
+          2
+        ],
+        [
+          0,
+          9,
+          7,
+          7,
+          5,
+          15
+        ],
+        [
+          0,
+          6,
+          4,
+          5,
+          3,
+          12
+        ],
+        [
+          2,
+          7,
+          3,
+          6,
+          2,
+          10
+        ],
+        [
+          1,
+          10,
+          4,
+          5,
+          2,
+          6
+        ],
+        [
+          3,
+          13,
+          6,
+          9,
+          8,
+          21
+        ]
+      ],
+      "k-NN (IBk, k=7)": [
+        [
+          0,
+          2,
+          3,
+          1,
+          0,
+          4
+        ],
+        [
+          1,
+          10,
+          7,
+          10,
+          3,
+          12
+        ],
+        [
+          1,
+          10,
+          4,
+          7,
+          0,
+          8
+        ],
+        [
+          0,
+          8,
+          4,
+          6,
+          2,
+          10
+        ],
+        [
+          0,
+          10,
+          5,
+          5,
+          0,
+          8
+        ],
+        [
+          0,
+          21,
+          4,
+          7,
+          4,
+          24
+        ]
+      ],
+      "Regresión logística": [
+        [
+          0,
+          3,
+          2,
+          3,
+          0,
+          2
+        ],
+        [
+          0,
+          12,
+          3,
+          4,
+          5,
+          19
+        ],
+        [
+          0,
+          7,
+          6,
+          3,
+          4,
+          10
+        ],
+        [
+          0,
+          3,
+          4,
+          3,
+          4,
+          16
+        ],
+        [
+          0,
+          6,
+          5,
+          6,
+          1,
+          10
+        ],
+        [
+          0,
+          10,
+          6,
+          8,
+          4,
+          32
+        ]
+      ],
+      "Random Forest": [
+        [
+          0,
+          3,
+          0,
+          2,
+          0,
+          5
+        ],
+        [
+          0,
+          6,
+          4,
+          2,
+          0,
+          31
+        ],
+        [
+          0,
+          9,
+          4,
+          2,
+          0,
+          15
+        ],
+        [
+          0,
+          3,
+          3,
+          1,
+          0,
+          23
+        ],
+        [
+          0,
+          5,
+          4,
+          4,
+          1,
+          14
+        ],
+        [
+          0,
+          16,
+          3,
+          3,
+          1,
+          37
+        ]
+      ],
+      "Gradient Boosting": [
+        [
+          1,
+          2,
+          0,
+          1,
+          0,
+          6
+        ],
+        [
+          0,
+          8,
+          7,
+          4,
+          3,
+          21
+        ],
+        [
+          0,
+          3,
+          10,
+          5,
+          1,
+          11
+        ],
+        [
+          0,
+          6,
+          3,
+          3,
+          5,
+          13
+        ],
+        [
+          1,
+          4,
+          4,
+          5,
+          2,
+          12
+        ],
+        [
+          0,
+          15,
+          4,
+          11,
+          4,
+          26
+        ]
+      ],
+      "Cadena de Markov": [
+        [
+          0,
+          4,
+          0,
+          0,
+          0,
+          6
+        ],
+        [
+          0,
+          13,
+          0,
+          0,
+          5,
+          25
+        ],
+        [
+          0,
+          4,
+          0,
+          0,
+          2,
+          24
+        ],
+        [
+          0,
+          11,
+          0,
+          0,
+          1,
+          18
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          13
+        ],
+        [
+          0,
+          18,
+          0,
+          0,
+          0,
+          42
+        ]
+      ],
+      "Preferencia personal (moda)": [
+        [
+          1,
+          8,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          3,
+          20,
+          1,
+          6,
+          4,
+          9
+        ],
+        [
+          5,
+          16,
+          1,
+          3,
+          1,
+          4
+        ],
+        [
+          1,
+          14,
+          3,
+          3,
+          1,
+          8
+        ],
+        [
+          0,
+          12,
+          1,
+          8,
+          2,
+          5
+        ],
+        [
+          10,
+          24,
+          0,
+          8,
+          7,
+          11
+        ]
+      ],
+      "Híbrido (ML + Markov + preferencia)": [
+        [
+          0,
+          2,
+          0,
+          2,
+          0,
+          6
+        ],
+        [
+          0,
+          11,
+          4,
+          3,
+          3,
+          22
+        ],
+        [
+          0,
+          6,
+          3,
+          2,
+          2,
+          17
+        ],
+        [
+          0,
+          6,
+          4,
+          2,
+          4,
+          14
+        ],
+        [
+          1,
+          8,
+          2,
+          6,
+          1,
+          10
+        ],
+        [
+          0,
+          12,
+          3,
+          7,
+          2,
+          36
+        ]
+      ]
+    },
+    "clases": [
+      "Accesorios",
+      "Camisetas",
+      "Chaquetas",
+      "Conjuntos",
+      "Pantalones",
+      "Sudaderas"
+    ],
+    "mejor": "Gradient Boosting",
+    "distribucion": {
+      "Sudaderas": 60,
+      "Camisetas": 43,
+      "Chaquetas": 30,
+      "Conjuntos": 30,
+      "Pantalones": 28,
+      "Accesorios": 10
+    },
+    "importancia": {
+      "ticket_ultimo": 0.0663,
+      "gasto_total": 0.064,
+      "ticket_promedio": 0.0593,
+      "dias_desde_anterior": 0.0585,
+      "ciudad": 0.0581,
+      "pct_Conjuntos": 0.0581,
+      "intervalo_promedio": 0.056,
+      "pct_Camisetas": 0.056,
+      "pct_Accesorios": 0.0545,
+      "hora": 0.0545,
+      "ultima_categoria": 0.0532,
+      "pct_Pantalones": 0.0523,
+      "pct_Sudaderas": 0.048,
+      "pct_Chaquetas": 0.0456,
+      "n_pedidos": 0.0448,
+      "dia_semana": 0.0438,
+      "tasa_envio_gratis": 0.0432,
+      "items_ultimo": 0.0337,
+      "variedad_categorias": 0.0253,
+      "tasa_cancelacion": 0.0248
+    }
+  },
+  "recompra": {
+    "tabla": [
+      {
+        "modelo": "Naive Bayes",
+        "exactitud": 0.6118721461187214,
+        "f1_macro": 0.5195509097948122,
+        "kappa": 0.04621611928062719,
+        "auc_roc": 0.5400287631831256,
+        "exactitud_temporal": 0.5681818181818182
+      },
+      {
+        "modelo": "Regresión logística",
+        "exactitud": 0.6529680365296804,
+        "f1_macro": 0.48527956457199406,
+        "kappa": 0.03378613723441304,
+        "auc_roc": 0.49798657718120803,
+        "exactitud_temporal": 0.5909090909090909
+      },
+      {
+        "modelo": "Árbol de decisión (J48/C4.5)",
+        "exactitud": 0.6118721461187214,
+        "f1_macro": 0.4809124118122752,
+        "kappa": -0.011080332409972415,
+        "auc_roc": 0.4577181208053691,
+        "exactitud_temporal": 0.5
+      },
+      {
+        "modelo": "Gradient Boosting",
+        "exactitud": 0.6529680365296804,
+        "f1_macro": 0.4771299321437547,
+        "kappa": 0.024841809233653755,
+        "auc_roc": 0.47665388302972195,
+        "exactitud_temporal": 0.5227272727272727
+      },
+      {
+        "modelo": "k-NN (IBk, k=7)",
+        "exactitud": 0.6118721461187214,
+        "f1_macro": 0.4530951611481623,
+        "kappa": -0.04702176725350138,
+        "auc_roc": 0.5211409395973154,
+        "exactitud_temporal": 0.5909090909090909
+      },
+      {
+        "modelo": "Random Forest",
+        "exactitud": 0.6712328767123288,
+        "f1_macro": 0.43846153846153846,
+        "kappa": 0.012153865430397315,
+        "auc_roc": 0.473633748801534,
+        "exactitud_temporal": 0.5909090909090909
+      },
+      {
+        "modelo": "ZeroR (línea base)",
+        "exactitud": 0.680365296803653,
+        "f1_macro": 0.4048913043478261,
+        "kappa": 0.0,
+        "auc_roc": 0.5,
+        "exactitud_temporal": 0.6136363636363636
+      }
+    ],
+    "matrices": {
+      "ZeroR (línea base)": [
+        [
+          0,
+          70
+        ],
+        [
+          0,
+          149
+        ]
+      ],
+      "Naive Bayes": [
+        [
+          19,
+          51
+        ],
+        [
+          34,
+          115
+        ]
+      ],
+      "Árbol de decisión (J48/C4.5)": [
+        [
+          12,
+          58
+        ],
+        [
+          27,
+          122
+        ]
+      ],
+      "k-NN (IBk, k=7)": [
+        [
+          8,
+          62
+        ],
+        [
+          23,
+          126
+        ]
+      ],
+      "Regresión logística": [
+        [
+          9,
+          61
+        ],
+        [
+          15,
+          134
+        ]
+      ],
+      "Random Forest": [
+        [
+          3,
+          67
+        ],
+        [
+          5,
+          144
+        ]
+      ],
+      "Gradient Boosting": [
+        [
+          8,
+          62
+        ],
+        [
+          14,
+          135
+        ]
+      ]
+    },
+    "clases": [
+      "no",
+      "si"
+    ],
+    "mejor": "Naive Bayes",
+    "distribucion": {
+      "si": 149,
+      "no": 70
+    },
+    "importancia": {
+      "dias_desde_anterior": 0.0716,
+      "ticket_promedio": 0.0693,
+      "intervalo_promedio": 0.0687,
+      "gasto_total": 0.0686,
+      "ticket_ultimo": 0.0629,
+      "tasa_envio_gratis": 0.0567,
+      "pct_Pantalones": 0.056,
+      "hora": 0.054,
+      "ciudad": 0.0539,
+      "pct_Chaquetas": 0.0537,
+      "pct_Conjuntos": 0.0521,
+      "pct_Accesorios": 0.0488,
+      "pct_Camisetas": 0.0488,
+      "ultima_categoria": 0.0473,
+      "n_pedidos": 0.0467,
+      "pct_Sudaderas": 0.0466,
+      "dia_semana": 0.035,
+      "tasa_cancelacion": 0.0234,
+      "items_ultimo": 0.0188,
+      "variedad_categorias": 0.0172
+    },
+    "arbol_texto": "|--- tasa_envio_gratis <= 0.41\n|   |--- tasa_cancelacion <= 2.04\n|   |   |--- pct_Pantalones <= 0.27\n|   |   |   |--- class: si\n|   |   |--- pct_Pantalones >  0.27\n|   |   |   |--- class: si\n|   |--- tasa_cancelacion >  2.04\n|   |   |--- class: si\n|--- tasa_envio_gratis >  0.41\n|   |--- hora <= 0.11\n|   |   |--- tasa_envio_gratis <= 2.03\n|   |   |   |--- class: si\n|   |   |--- tasa_envio_gratis >  2.03\n|   |   |   |--- class: no\n|   |--- hora >  0.11\n|   |   |--- pct_Accesorios <= -0.25\n|   |   |   |--- class: si\n|   |   |--- pct_Accesorios >  -0.25\n|   |   |   |--- class: no\n"
+  },
+  "ticket": {
+    "tabla": [
+      {
+        "modelo": "Media (línea base)",
+        "mae": 84015.41812118047,
+        "r2": -0.009552537244026604
+      },
+      {
+        "modelo": "Random Forest",
+        "mae": 84594.26519567816,
+        "r2": -0.05549599468276156
+      },
+      {
+        "modelo": "Regresión lineal",
+        "mae": 89884.55620024602,
+        "r2": -0.2584319537522344
+      }
+    ],
+    "mejor": "Media (línea base)"
+  },
+  "clustering": {
+    "k": 2,
+    "siluetas": {
+      "2": 0.35336822795299333,
+      "3": 0.3476391366797343,
+      "4": 0.23678921831880775,
+      "5": 0.20687088673315504,
+      "6": 0.20626118437661814
+    },
+    "nombres": {
+      "0": "Alto valor inactivos (recuperar)",
+      "1": "Nuevos"
+    },
+    "varianza_pca": [
+      0.34369867475605814,
+      0.22129571764509168
+    ]
+  },
+  "factores": {
+    "varianza": [
+      0.2251,
+      0.1671,
+      0.0909,
+      0.0781,
+      0.074,
+      0.0661,
+      0.0585,
+      0.0542
+    ]
+  }
+}

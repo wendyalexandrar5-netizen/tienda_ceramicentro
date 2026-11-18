@@ -1,0 +1,19 @@
+,Factor 1,Factor 2,Factor 3,Factor 4
+n_pedidos,0.395,0.215,-0.046,-0.063
+gasto_total,0.355,0.297,-0.022,-0.109
+ticket_promedio,-0.279,0.395,0.063,-0.193
+ticket_ultimo,-0.169,0.393,0.077,0.342
+items_ultimo,-0.106,0.311,0.085,0.489
+intervalo_promedio,-0.376,-0.067,-0.083,0.006
+dias_desde_anterior,-0.339,-0.065,-0.094,0.027
+tasa_cancelacion,0.207,0.067,-0.303,-0.058
+tasa_envio_gratis,-0.256,0.392,-0.087,-0.155
+variedad_categorias,0.367,0.303,-0.073,-0.062
+dia_semana,0.01,-0.172,0.219,-0.027
+hora,0.11,0.021,0.265,-0.098
+pct_Accesorios,-0.023,-0.01,-0.335,0.464
+pct_Camisetas,0.146,-0.21,-0.381,0.037
+pct_Chaquetas,-0.139,0.241,-0.338,-0.24
+pct_Conjuntos,-0.185,-0.029,0.159,-0.474
+pct_Pantalones,0.085,-0.141,0.406,0.223
+pct_Sudaderas,0.08,0.216,0.424,0.028

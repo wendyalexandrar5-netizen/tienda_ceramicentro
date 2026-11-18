@@ -1,0 +1,4 @@
+nivel,antecedente,consecuente,soporte,confianza,lift
+producto,Sudadera bicolor Fanstore,Gorro Street,0.022727272727272728,0.29411764705882354,1.9031141868512111
+categoría,Pantalones,Accesorios,0.05,0.2558139534883721,1.1974270163285503
+categoría,Accesorios,Pantalones,0.05,0.2340425531914894,1.1974270163285503

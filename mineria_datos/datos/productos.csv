@@ -1,0 +1,23 @@
+id,categoria_id,nombre,precio,destacado,estado,fecha_creacion,fecha_actualizacion
+1,1,Camiseta básica,54900.0,1,activo,2026-08-20 23:08:56,2026-09-29 23:08:56
+2,1,Camiseta oversize,64900.0,1,activo,2026-08-22 23:08:56,2026-09-29 23:08:56
+3,1,Camiseta béisbol NY,79900.0,0,activo,2026-08-24 23:08:56,2026-09-29 23:08:56
+4,1,Polo acanalado,69900.0,0,activo,2026-08-26 23:08:56,2026-09-29 23:08:56
+5,1,Camisa bicolor,74900.0,0,activo,2026-08-28 23:08:56,2026-09-29 23:08:56
+6,2,Pantalón cargo,119900.0,1,activo,2026-08-30 23:08:56,2026-09-29 23:08:56
+7,2,Jogger Skull,99900.0,0,activo,2026-09-01 23:08:56,2026-09-29 23:08:56
+8,2,Short deportivo Colorado,59900.0,0,activo,2026-09-03 23:08:56,2026-09-29 23:08:56
+9,3,Sudadera clásica,129900.0,1,activo,2026-09-05 23:08:56,2026-09-29 23:08:56
+10,3,Sudadera Smile Graffiti,139900.0,0,activo,2026-09-07 23:08:56,2026-09-29 23:08:56
+11,3,Sudadera bicolor Fanstore,149900.0,0,activo,2026-09-09 23:08:56,2026-09-29 23:08:56
+12,3,Buzo cuello redondo,109900.0,0,activo,2026-09-11 23:08:56,2026-09-29 23:08:56
+13,4,Chaqueta urbana,169900.0,1,activo,2026-09-13 23:08:56,2026-09-29 23:08:56
+14,4,Chaqueta Oso bicolor,159900.0,0,activo,2026-09-15 23:08:56,2026-09-29 23:08:56
+15,5,Conjunto deportivo,119900.0,1,activo,2026-09-17 23:08:56,2026-09-29 23:08:56
+16,5,Conjunto texturizado,139900.0,0,activo,2026-09-19 23:08:56,2026-09-29 23:08:56
+17,5,Conjunto tropical,129900.0,0,activo,2026-09-21 23:08:56,2026-09-29 23:08:56
+18,5,Conjunto geométrico,134900.0,0,activo,2026-09-23 23:08:56,2026-09-29 23:08:56
+19,6,Gorro Street,39900.0,0,activo,2026-09-25 23:08:56,2026-09-29 23:08:56
+20,6,Gorro Alien,34900.0,0,activo,2026-09-27 23:08:56,2026-09-29 23:08:56
+21,1,Camiseta Oversize Los Angeles 32 – High Streetwear,65000.0,1,activo,2026-10-13 02:49:17,2026-10-13 02:49:17
+23,5,"Set Streetwear ""New York 90"" (Camiseta Oversize + Jean Wide Leg Desgastado)",220000.0,1,activo,2026-10-13 20:51:06,2026-10-13 20:51:17

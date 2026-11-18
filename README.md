@@ -149,3 +149,9 @@ node tests/e2e/app.e2e.js      # app (servir mobile-app/www en :8090)
 node tests/e2e/extras.e2e.js   # reservas vencidas, gestión de pedidos, recuperar contraseña, legales
 ```
 La carpeta `tests/` está bloqueada para la web por `.htaccess`.
+
+## Minería de datos (predicción de la decisión futura del cliente)
+
+La carpeta [`mineria_datos/`](mineria_datos/README.md) contiene la plataforma de minería de datos (Python + Streamlit):
+predicción de la próxima categoría, recompra y gasto, segmentación K-Means, reglas Apriori y exportes para Weka,
+RapidMiner y Power BI. Ver `mineria_datos/README.md`.

@@ -1,0 +1,23 @@
+id,nombre,categoria,precio,destacado,estado
+1,Camiseta básica,Camisetas,54900.0,1,activo
+2,Camiseta oversize,Camisetas,64900.0,1,activo
+3,Camiseta béisbol NY,Camisetas,79900.0,0,activo
+4,Polo acanalado,Camisetas,69900.0,0,activo
+5,Camisa bicolor,Camisetas,74900.0,0,activo
+6,Pantalón cargo,Pantalones,119900.0,1,activo
+7,Jogger Skull,Pantalones,99900.0,0,activo
+8,Short deportivo Colorado,Pantalones,59900.0,0,activo
+9,Sudadera clásica,Sudaderas,129900.0,1,activo
+10,Sudadera Smile Graffiti,Sudaderas,139900.0,0,activo
+11,Sudadera bicolor Fanstore,Sudaderas,149900.0,0,activo
+12,Buzo cuello redondo,Sudaderas,109900.0,0,activo
+13,Chaqueta urbana,Chaquetas,169900.0,1,activo
+14,Chaqueta Oso bicolor,Chaquetas,159900.0,0,activo
+15,Conjunto deportivo,Conjuntos,119900.0,1,activo
+16,Conjunto texturizado,Conjuntos,139900.0,0,activo
+17,Conjunto tropical,Conjuntos,129900.0,0,activo
+18,Conjunto geométrico,Conjuntos,134900.0,0,activo
+19,Gorro Street,Accesorios,39900.0,0,activo
+20,Gorro Alien,Accesorios,34900.0,0,activo
+21,Camiseta Oversize Los Angeles 32 – High Streetwear,Camisetas,65000.0,1,activo
+23,"Set Streetwear ""New York 90"" (Camiseta Oversize + Jean Wide Leg Desgastado)",Conjuntos,220000.0,1,activo
